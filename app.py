@@ -1,674 +1,1193 @@
-from __future__ import annotations
-
-from dataclasses import asdict
-
-import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
-
-from core.data_loader import load_formula_catalog, load_materials, paper_options
-from core.exporter import make_quote_dataframe
-from core.formulas import calculate_edge_protector, calculate_tube
-from core.models import EdgeProtectorInput, TubeInput
-
+import time
+import json
 
 st.set_page_config(
-    page_title="IP Poland Pricing Engine",
-    page_icon="🧮",
+    page_title="Ticket2Fix | IBM Bob Hackathon",
+    page_icon="🛠️",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="expanded"
 )
 
+# ---------------------------------------------------------
+# Custom Professional CSS
+# ---------------------------------------------------------
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-def inject_css() -> None:
-    st.markdown(
-        """
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
 
-        html, body, [class*="css"] {
-            font-family: 'Inter', sans-serif;
+    .stApp {
+        background:
+            radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 32%),
+            radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 30%),
+            linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    }
+
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #020617 0%, #0f172a 55%, #111827 100%);
+    }
+
+    section[data-testid="stSidebar"] * {
+        color: #e5e7eb !important;
+    }
+
+    .hero-container {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #020617 0%, #1e3a8a 45%, #2563eb 100%);
+        padding: 2.5rem 2.5rem;
+        border-radius: 26px;
+        color: white;
+        box-shadow: 0 25px 60px rgba(15, 23, 42, 0.28);
+        margin-bottom: 1.5rem;
+        min-height: 245px;
+    }
+
+    .hero-container::before {
+        content: "";
+        position: absolute;
+        width: 420px;
+        height: 420px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        top: -170px;
+        right: -120px;
+    }
+
+    .hero-container::after {
+        content: "";
+        position: absolute;
+        width: 280px;
+        height: 280px;
+        border-radius: 999px;
+        background: rgba(59,130,246,0.3);
+        bottom: -120px;
+        left: 40%;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 5;
+        max-width: 900px;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.22);
+        padding: 0.45rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        margin-bottom: 1rem;
+    }
+
+    .hero-title {
+        font-size: 3.4rem;
+        line-height: 1.04;
+        font-weight: 900;
+        margin-bottom: 0.7rem;
+        letter-spacing: -0.05em;
+    }
+
+    .hero-subtitle {
+        font-size: 1.18rem;
+        line-height: 1.7;
+        color: #dbeafe;
+        max-width: 780px;
+    }
+
+    .floating-icon {
+        position: absolute;
+        font-size: 2rem;
+        opacity: 0.7;
+        animation: float 4.5s ease-in-out infinite;
+        z-index: 4;
+    }
+
+    .icon-one {
+        top: 28px;
+        right: 70px;
+        animation-delay: 0s;
+    }
+
+    .icon-two {
+        top: 125px;
+        right: 180px;
+        animation-delay: 1s;
+    }
+
+    .icon-three {
+        bottom: 35px;
+        right: 90px;
+        animation-delay: 2s;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-14px) rotate(4deg); }
+        100% { transform: translateY(0px) rotate(0deg); }
+    }
+
+    .glass-card {
+        background: rgba(255,255,255,0.86);
+        backdrop-filter: blur(16px);
+        padding: 1.35rem;
+        border-radius: 22px;
+        border: 1px solid rgba(226,232,240,0.95);
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+        margin-bottom: 1rem;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 1.35rem;
+        border-radius: 20px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        min-height: 150px;
+        transition: 0.25s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 40px rgba(37, 99, 235, 0.16);
+        border-color: #bfdbfe;
+    }
+
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 0.35rem;
+    }
+
+    .feature-text {
+        font-size: 0.92rem;
+        color: #475569;
+        line-height: 1.55;
+    }
+
+    .section-title {
+        font-size: 1.45rem;
+        font-weight: 850;
+        color: #0f172a;
+        margin-bottom: 0.4rem;
+    }
+
+    .section-subtitle {
+        color: #64748b;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .pill {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-right: 0.35rem;
+        margin-bottom: 0.35rem;
+        background: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+
+    .pill-green {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .pill-purple {
+        background: #ede9fe;
+        color: #5b21b6;
+        border: 1px solid #ddd6fe;
+    }
+
+    .pill-orange {
+        background: #ffedd5;
+        color: #9a3412;
+        border: 1px solid #fed7aa;
+    }
+
+    .output-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 1.3rem;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+    }
+
+    .mini-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.3rem;
+    }
+
+    .footer {
+        text-align: center;
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-top: 2rem;
+        padding: 1.2rem;
+    }
+
+    .sidebar-title {
+        font-size: 1.55rem;
+        font-weight: 900;
+        color: white;
+        margin-bottom: 0.3rem;
+    }
+
+    .sidebar-subtitle {
+        font-size: 0.9rem;
+        color: #cbd5e1;
+        line-height: 1.5;
+    }
+
+    .sidebar-box {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    div[data-testid="stMetric"] {
+        background: white;
+        padding: 1rem;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .stButton > button {
+        border-radius: 14px !important;
+        font-weight: 800 !important;
+        padding: 0.75rem 1rem !important;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+        border: none !important;
+        color: white !important;
+        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.25);
+    }
+
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+        transform: translateY(-1px);
+    }
+
+    .stDownloadButton > button {
+        border-radius: 14px !important;
+        font-weight: 800 !important;
+        padding: 0.7rem 1rem !important;
+    }
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.1rem !important;
         }
 
-        .stApp {
-            background:
-                radial-gradient(circle at 10% 20%, rgba(0,229,255,.18), transparent 28%),
-                radial-gradient(circle at 90% 15%, rgba(168,85,247,.20), transparent 28%),
-                radial-gradient(circle at 50% 90%, rgba(34,197,94,.12), transparent 30%),
-                linear-gradient(135deg, #050816 0%, #0B1020 45%, #111827 100%);
+        .hero-subtitle {
+            font-size: 0.95rem !important;
         }
 
-        .hero {
-            padding: 34px;
-            border: 1px solid rgba(148,163,184,.22);
-            border-radius: 28px;
-            background: linear-gradient(135deg, rgba(15,23,42,.94), rgba(30,41,59,.66));
-            box-shadow: 0 24px 80px rgba(0,0,0,.38);
-            margin-bottom: 24px;
+        .hero-container {
+            padding: 1.5rem !important;
+            border-radius: 18px !important;
         }
 
-        .hero h1 {
-            font-size: 46px;
-            line-height: 1.05;
-            font-weight: 900;
-            letter-spacing: -1.4px;
-            margin: 0;
-            background: linear-gradient(90deg, #FFFFFF, #67E8F9, #A78BFA);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .feature-card {
+            min-height: 120px !important;
+            margin-bottom: 0.8rem !important;
         }
 
-        .hero p {
-            color: #CBD5E1;
-            font-size: 17px;
-            max-width: 1050px;
+        .section-title {
+            font-size: 1.2rem !important;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 7px 12px;
-            border-radius: 999px;
-            background: rgba(0,229,255,.12);
-            color: #67E8F9;
-            border: 1px solid rgba(103,232,249,.25);
-            font-weight: 700;
-            margin-right: 8px;
-            margin-bottom: 12px;
+        .floating-icon {
+            display: none !important;
         }
+    }
+</style>
+""", unsafe_allow_html=True)
 
-        .glass-card {
-            padding: 20px;
-            border-radius: 22px;
-            background: rgba(15,23,42,.74);
-            border: 1px solid rgba(148,163,184,.18);
-            box-shadow: 0 14px 50px rgba(0,0,0,.25);
-        }
+# ---------------------------------------------------------
+# Sample Tickets
+# ---------------------------------------------------------
+SAMPLE_TICKETS = {
+    "Authentication issue": """After resetting password, users cannot log in.
+The page refreshes but does not show an error message.
+This happens only after using the reset password link.""",
 
-        div[data-testid="metric-container"] {
-            background: linear-gradient(145deg, rgba(15,23,42,.88), rgba(30,41,59,.62));
-            border: 1px solid rgba(148,163,184,.18);
-            padding: 18px;
-            border-radius: 20px;
-            box-shadow: 0 14px 40px rgba(0,0,0,.25);
-        }
+    "Payment issue": """Users are charged twice when clicking the checkout button multiple times.
+The order is created only once, but two payment transactions appear.""",
 
-        div[data-testid="metric-container"] label {
-            color: #94A3B8 !important;
-        }
+    "Upload issue": """Users cannot upload profile pictures larger than 2MB.
+The upload fails silently without showing any message.""",
 
-        div[data-testid="metric-container"] [data-testid="stMetricValue"] {
-            color: #F8FAFC;
-            font-weight: 900;
-        }
+    "Dashboard issue": """The analytics dashboard does not load for some users.
+The loading spinner keeps running forever.
+Refreshing the page sometimes fixes the issue."""
+}
+# ---------------------------------------------------------
+# Session State
+# ---------------------------------------------------------
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-        .warning-box {
-            padding: 16px 18px;
-            border-radius: 18px;
-            background: rgba(251,191,36,.10);
-            border: 1px solid rgba(251,191,36,.32);
-            color: #FDE68A;
-        }
+if "analysis_count" not in st.session_state:
+    st.session_state.analysis_count = 0
 
-        .footer {
-            color: #94A3B8;
-            font-size: 13px;
-            padding-top: 30px;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def hero() -> None:
-    st.markdown(
-        """
-        <div class="hero">
-            <span class="badge">STREAMLIT PRICING ENGINE</span>
-            <span class="badge">IP POLAND 2025</span>
-            <h1>Industrial Packaging Calculator</h1>
-            <p>
-                Professional pricing cockpit for Edge Protectors, Tubes/Cores,
-                palletization, strength estimation, margin simulation, material data,
-                and Excel-to-Python formula migration.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+if "last_analysis" not in st.session_state:
+    st.session_state.last_analysis = None
+# ---------------------------------------------------------
+# Helper Functions
+# ---------------------------------------------------------
+def get_severity_level(severity_text):
+    if severity_text.startswith("Critical"):
+        return "Critical"
+    if severity_text.startswith("High"):
+        return "High"
+    if severity_text.startswith("Medium"):
+        return "Medium"
+    if severity_text.startswith("Low"):
+        return "Low"
+    return "Unknown"
 
 
-def money(value: float) -> str:
-    return f"{value:,.4f} PLN"
+def get_severity_badge(severity_text):
+    level = get_severity_level(severity_text)
+
+    badges = {
+        "Critical": "🔴 Critical",
+        "High": "🟠 High",
+        "Medium": "🟡 Medium",
+        "Low": "🟢 Low",
+        "Unknown": "⚪ Unknown"
+    }
+
+    return badges.get(level, "⚪ Unknown")
 
 
-def number(value: float, digits: int = 3) -> str:
-    return f"{value:,.{digits}f}"
+def calculate_confidence(ticket_lower):
+    strong_keywords = [
+        "password", "login", "auth", "payment", "checkout",
+        "charged", "upload", "file", "picture", "dashboard",
+        "analytics", "spinner"
+    ]
+
+    matches = [kw for kw in strong_keywords if kw in ticket_lower]
+
+    if len(matches) >= 2:
+        return 0.95, matches
+    if len(matches) == 1:
+        return 0.85, matches
+    if len(ticket_lower.strip()) > 80:
+        return 0.75, matches
+
+    return 0.60, matches
 
 
-def download_quote(product: str, inputs: dict, result: dict) -> None:
-    quote_df = make_quote_dataframe(
-        product=product,
-        inputs=inputs,
-        result=result,
-    )
-
-    csv = quote_df.to_csv(index=False).encode("utf-8")
-
-    st.download_button(
-        label="⬇️ Download quote CSV",
-        data=csv,
-        file_name=f"{product.lower().replace(' ', '_')}_quote.csv",
-        mime="text/csv",
-        use_container_width=True,
-    )
+def build_json_export(category, severity, business_impact, likely_areas, tests, ticket, project_context):
+    return json.dumps({
+        "project": "Ticket2Fix",
+        "category": category,
+        "severity": severity,
+        "business_impact": business_impact,
+        "ticket": ticket,
+        "project_context": project_context,
+        "likely_affected_areas": likely_areas,
+        "suggested_tests": tests,
+        "generated_by": "Ticket2Fix powered by IBM Bob"
+    }, indent=2)
 
 
-def result_chart(result: dict, product: str) -> None:
-    fig = go.Figure()
+def build_plain_text_export(category, severity, business_impact, likely_areas, tests, ticket, project_context):
+    return f"""
+Ticket2Fix Analysis
+===================
 
-    fig.add_trace(
-        go.Bar(
-            x=["Price / r.m.", "Price / piece", "Price / kg"],
-            y=[
-                result.get("price_per_rm_pln", 0),
-                result.get("price_per_piece_pln", 0),
-                result.get("price_per_kg_pln", 0),
-            ],
-            marker=dict(
-                color=[
-                    "#00E5FF",
-                    "#A78BFA",
-                    "#22C55E",
-                ]
-            ),
-            text=[
-                f"{result.get('price_per_rm_pln', 0):.4f}",
-                f"{result.get('price_per_piece_pln', 0):.4f}",
-                f"{result.get('price_per_kg_pln', 0):.4f}",
-            ],
-            textposition="outside",
-        )
-    )
+Ticket:
+{ticket}
 
-    fig.update_layout(
-        title=f"{product} price composition",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#E5E7EB"),
-        height=360,
-        margin=dict(l=20, r=20, t=60, b=30),
-    )
+Project Context:
+{project_context}
 
-    st.plotly_chart(fig, use_container_width=True)
+Category:
+{category}
 
+Severity:
+{severity}
 
-def dashboard_page() -> None:
-    st.subheader("🚀 Command Center")
+Business Impact:
+{business_impact}
 
-    catalog = load_formula_catalog()
+Likely Affected Areas:
+{chr(10).join([f"- {area}" for area in likely_areas])}
 
-    c1, c2, c3, c4 = st.columns(4)
+Suggested Tests:
+{chr(10).join([f"- {test}" for test in tests])}
 
-    c1.metric("Formula cells loaded", f"{catalog.get('total_formulas', 0):,}")
-    c2.metric("Product modules", "4+")
-    c3.metric("Current MVP", "Edge + Tubes")
-    c4.metric("Currency", "PLN")
+Generated by Ticket2Fix powered by IBM Bob.
+"""
+# ---------------------------------------------------------
+# Analysis Logic
+# ---------------------------------------------------------
+def analyze_ticket(ticket, project_context):
+    ticket_lower = ticket.lower()
 
-    st.markdown("### Migration status")
-
-    status = pd.DataFrame(
-        [
-            {
-                "Module": "Edge Protectors",
-                "Status": "MVP formula engine ready",
-                "Priority": "High",
-            },
-            {
-                "Module": "Tubes / Cores",
-                "Status": "MVP formula engine ready",
-                "Priority": "High",
-            },
-            {
-                "Module": "Paper database",
-                "Status": "JSON database ready",
-                "Priority": "High",
-            },
-            {
-                "Module": "Cardboard Pallets",
-                "Status": "Next implementation",
-                "Priority": "Medium",
-            },
-            {
-                "Module": "HoneyComb",
-                "Status": "Formula audit ready; full engine pending",
-                "Priority": "Medium",
-            },
+    if "password" in ticket_lower or "login" in ticket_lower or "auth" in ticket_lower:
+        likely_areas = [
+            "Authentication service",
+            "Password reset controller",
+            "Login form component",
+            "Session or token generation logic",
+            "Frontend error handling"
         ]
-    )
+        severity = "High — authentication issue affecting user access."
+        category = "Authentication / Access"
+        business_impact = "Users may be blocked from accessing the product after resetting their password."
+        tests = [
+            "Login succeeds after password reset.",
+            "Login fails with the old password.",
+            "Invalid reset token shows a clear error message.",
+            "Expired reset token shows a clear error message.",
+            "Empty password field displays validation feedback."
+        ]
+
+    elif "payment" in ticket_lower or "checkout" in ticket_lower or "charged" in ticket_lower:
+        likely_areas = [
+            "Checkout button component",
+            "Payment processing service",
+            "Order creation logic",
+            "Transaction deduplication logic",
+            "Backend payment webhook handler"
+        ]
+        severity = "Critical — payment issue that may cause financial impact."
+        category = "Payments / Checkout"
+        business_impact = "Duplicate charges can create financial risk, refund workload, and customer trust issues."
+        tests = [
+            "Multiple checkout clicks do not create duplicate payments.",
+            "Payment request is disabled after first submission.",
+            "Order is created only once.",
+            "Duplicate payment webhook events are ignored.",
+            "User receives clear payment confirmation."
+        ]
+
+    elif "upload" in ticket_lower or "file" in ticket_lower or "picture" in ticket_lower:
+        likely_areas = [
+            "File upload component",
+            "File size validation logic",
+            "Backend upload endpoint",
+            "Error message handling",
+            "Storage service integration"
+        ]
+        severity = "Medium — user-facing feature issue with poor feedback."
+        category = "File Upload / Validation"
+        business_impact = "Users may fail to complete profile setup or content submission due to unclear upload errors."
+        tests = [
+            "Files smaller than the limit upload successfully.",
+            "Files larger than the limit show a clear error.",
+            "Unsupported file formats are rejected.",
+            "Upload progress and failure states are displayed.",
+            "Backend returns correct validation errors."
+        ]
+
+    elif "dashboard" in ticket_lower or "analytics" in ticket_lower or "spinner" in ticket_lower:
+        likely_areas = [
+            "Dashboard component",
+            "Analytics API endpoint",
+            "Frontend loading state",
+            "Data fetching hook",
+            "Error boundary or fallback UI"
+        ]
+        severity = "Medium — visibility issue affecting user access to analytics."
+        category = "Dashboard / Data Loading"
+        business_impact = "Users may lose access to key reporting information and decision-making dashboards."
+        tests = [
+            "Dashboard loads successfully for valid users.",
+            "API timeout shows a friendly error message.",
+            "Loading spinner stops after failed requests.",
+            "Retry behavior works correctly.",
+            "Empty data state is displayed clearly."
+        ]
 
-    st.dataframe(status, use_container_width=True, hide_index=True)
-
-
-def edge_page() -> None:
-    st.subheader("🧱 Edge Protector Calculator")
-
-    left, right = st.columns([0.38, 0.62], gap="large")
-
-    with left:
-        st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-        st.markdown("#### Product inputs")
-
-        papers = paper_options()
-
-        product_type = st.selectbox(
-            "Type",
-            papers,
-            index=papers.index("IPP-30") if "IPP-30" in papers else 0,
-        )
-
-        outer_cover = st.selectbox(
-            "Outer cover",
-            papers,
-            index=papers.index("Testliner Grey") if "Testliner Grey" in papers else 0,
-        )
-
-        c1, c2 = st.columns(2)
-
-        side_1 = c1.number_input(
-            "Side 1 / x1, mm",
-            min_value=1.0,
-            value=25.0,
-            step=1.0,
-        )
-
-        side_2 = c2.number_input(
-            "Side 2 / x2, mm",
-            min_value=1.0,
-            value=150.0,
-            step=1.0,
-        )
-
-        c3, c4 = st.columns(2)
-
-        thickness = c3.number_input(
-            "Wall thickness, mm",
-            min_value=0.1,
-            value=1.8,
-            step=0.1,
-        )
-
-        length = c4.number_input(
-            "Length, mm",
-            min_value=1.0,
-            value=500.0,
-            step=10.0,
-        )
-
-        c5, c6 = st.columns(2)
-
-        qty = c5.number_input(
-            "Quantity, pcs",
-            min_value=1,
-            value=33000,
-            step=100,
-        )
-
-        qty_per_pallet = c6.number_input(
-            "Qty per pallet",
-            min_value=1,
-            value=1000,
-            step=10,
-        )
-
-        st.markdown("#### Commercial")
-
-        c7, c8 = st.columns(2)
-
-        transport = c7.number_input(
-            "Transport, PLN",
-            min_value=0.0,
-            value=0.0,
-            step=50.0,
-        )
-
-        margin = c8.number_input(
-            "Margin, %",
-            min_value=-100.0,
-            value=0.0,
-            step=1.0,
-        )
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    inp = EdgeProtectorInput(
-        side_1_mm=side_1,
-        side_2_mm=side_2,
-        thickness_mm=thickness,
-        length_mm=length,
-        product_type=product_type,
-        outer_cover=outer_cover,
-        quantity_pcs=int(qty),
-        quantity_per_pallet=int(qty_per_pallet),
-        transport_cost_pln=transport,
-        margin_percent=margin,
-    )
-
-    result = calculate_edge_protector(inp)
-    result_dict = result.to_dict()
-
-    with right:
-        m1, m2, m3, m4 = st.columns(4)
-
-        m1.metric("Price / r.m.", money(result.price_per_rm_pln))
-        m2.metric("Price / piece", money(result.price_per_piece_pln))
-        m3.metric("Weight kg/r.m.", number(result.weight_kg_per_rm, 6))
-        m4.metric("Bending force", f"{result.three_point_bending_n:,.1f} N")
-
-        result_chart(result_dict, "Edge Protector")
-
-        a, b = st.columns(2)
-
-        with a:
-            st.markdown("#### Logistics")
-
-            logistics = pd.DataFrame(
-                [
-                    {"Metric": "Total running meters", "Value": result.total_running_m},
-                    {"Metric": "Net weight kg", "Value": result.net_weight_kg},
-                    {"Metric": "Pallets", "Value": result.pallets},
-                    {"Metric": "Pallet weight kg", "Value": result.pallet_weight_kg},
-                ]
-            )
-
-            st.dataframe(logistics, use_container_width=True, hide_index=True)
-
-        with b:
-            st.markdown("#### Production order")
-
-            st.json(
-                {
-                    "product": "Kątownik / Edge Protector",
-                    "dimensions": f"{side_1} x {side_2} x {thickness} / {length} mm",
-                    "type": product_type,
-                    "outer_cover": outer_cover,
-                    "quantity_pcs": int(qty),
-                }
-            )
-
-        download_quote(
-            product="Edge Protector",
-            inputs=asdict(inp),
-            result=result_dict,
-        )
-
-
-def tube_page() -> None:
-    st.subheader("🌀 Tubes / Cores Calculator")
-
-    left, right = st.columns([0.38, 0.62], gap="large")
-
-    with left:
-        st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-        st.markdown("#### Product inputs")
-
-        papers = paper_options()
-
-        product_type = st.selectbox(
-            "Type",
-            papers,
-            index=papers.index("IPP-30") if "IPP-30" in papers else 0,
-            key="tube_type",
-        )
-
-        inner_cover = st.selectbox(
-            "Inner cover",
-            ["nie"] + papers,
-            index=0,
-        )
-
-        outer_cover = st.selectbox(
-            "Outer cover",
-            papers,
-            index=papers.index("Testliner Grey") if "Testliner Grey" in papers else 0,
-            key="tube_outer",
-        )
-
-        c1, c2 = st.columns(2)
-
-        diameter = c1.number_input(
-            "Diameter, mm",
-            min_value=1.0,
-            value=76.8,
-            step=0.1,
-        )
-
-        thickness = c2.number_input(
-            "Wall thickness, mm",
-            min_value=0.1,
-            value=5.8,
-            step=0.1,
-            key="tube_thickness",
-        )
-
-        c3, c4 = st.columns(2)
-
-        length = c3.number_input(
-            "Length, mm",
-            min_value=1.0,
-            value=525.0,
-            step=5.0,
-            key="tube_length",
-        )
-
-        qty_per_pallet = c4.number_input(
-            "Qty per pallet",
-            min_value=1,
-            value=37,
-            step=1,
-            key="tube_qty_per_pallet",
-        )
-
-        c5, c6 = st.columns(2)
-
-        qty = c5.number_input(
-            "Quantity, pcs",
-            min_value=1,
-            value=27324,
-            step=100,
-            key="tube_qty",
-        )
-
-        transport = c6.number_input(
-            "Transport, PLN",
-            min_value=0.0,
-            value=0.0,
-            step=50.0,
-            key="tube_transport",
-        )
-
-        margin = st.number_input(
-            "Margin, %",
-            min_value=-100.0,
-            value=0.0,
-            step=1.0,
-            key="tube_margin",
-        )
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    inp = TubeInput(
-        diameter_mm=diameter,
-        thickness_mm=thickness,
-        length_mm=length,
-        product_type=product_type,
-        inner_cover=inner_cover,
-        outer_cover=outer_cover,
-        quantity_pcs=int(qty),
-        quantity_per_pallet=int(qty_per_pallet),
-        transport_cost_pln=transport,
-        margin_percent=margin,
-    )
-
-    result = calculate_tube(inp)
-    result_dict = result.to_dict()
-
-    with right:
-        m1, m2, m3, m4 = st.columns(4)
-
-        m1.metric("Price / r.m.", money(result.price_per_rm_pln))
-        m2.metric("Price / piece", money(result.price_per_piece_pln))
-        m3.metric("Weight kg/r.m.", number(result.weight_kg_per_rm, 6))
-        m4.metric("Flat crush", f"{result.flat_crush_n_per_0_1m:,.1f} N")
-
-        result_chart(result_dict, "Tube / Core")
-
-        st.markdown("#### Calculation summary")
-
-        st.dataframe(
-            pd.DataFrame(result_dict.items(), columns=["Metric", "Value"]),
-            use_container_width=True,
-            hide_index=True,
-        )
-
-        download_quote(
-            product="Tube Core",
-            inputs=asdict(inp),
-            result=result_dict,
-        )
-
-
-def materials_page() -> None:
-    st.subheader("📦 Materials & Calibration Database")
-
-    data = load_materials()
-
-    st.markdown(
-        """
-        <div class='warning-box'>
-            This MVP stores material data in <b>data/materials.json</b>.
-            Edit it in GitHub or add an admin save function later.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("### Paper parameters")
-
-    material_df = (
-        pd.DataFrame(data["paper_types"])
-        .T
-        .reset_index()
-        .rename(columns={"index": "material"})
-    )
-
-    st.dataframe(material_df, use_container_width=True, hide_index=True)
-
-    st.markdown("### FX rates")
-    st.json(data["fx_rates"])
-
-    st.markdown("### Calibration constants")
-    st.json(data["calibration"])
-
-
-def formula_audit_page() -> None:
-    st.subheader("🧬 Excel Formula Audit")
-
-    catalog = load_formula_catalog()
-
-    st.metric(
-        "Extracted formula cells",
-        f"{catalog.get('total_formulas', 0):,}",
-    )
-
-    stats = pd.DataFrame(catalog.get("sheet_stats", []))
-
-    if not stats.empty:
-        st.dataframe(stats, use_container_width=True, hide_index=True)
     else:
-        st.info(
-            "Formula catalog is not uploaded yet. "
-            "The app will still work for Edge and Tube calculators."
-        )
+        likely_areas = [
+            "Frontend component related to the reported feature",
+            "Backend API endpoint",
+            "Validation logic",
+            "Error handling flow",
+            "Data persistence layer"
+        ]
+        severity = "Medium — requires investigation."
+        category = "General Application Issue"
+        business_impact = "The issue may disrupt user workflow and requires engineering triage."
+        tests = [
+            "Reported issue can be reproduced.",
+            "Expected behavior is restored.",
+            "Error states are handled clearly.",
+            "Relevant backend response codes are validated.",
+            "Regression test is added."
+        ]
 
-    formulas = catalog.get("formulas", [])
+    analysis = f"""
+# Developer-Ready Analysis
 
-    if formulas:
-        sheet_names = [item.get("sheet", "") for item in catalog.get("sheet_stats", [])]
+## 1. Clean Bug Summary
 
-        sheet = st.selectbox(
-            "Filter by sheet",
-            ["All"] + sheet_names,
-        )
+The reported issue indicates that users are experiencing a problem that blocks or disrupts an expected workflow.
 
-        if sheet != "All":
-            formulas = [f for f in formulas if f.get("sheet") == sheet]
+**Original ticket:**
 
-        query = st.text_input("Search formula text / cell")
+> {ticket}
 
-        if query:
-            q = query.lower()
-            formulas = [
-                f
-                for f in formulas
-                if q in str(f.get("formula", "")).lower()
-                or q in str(f.get("cell", "")).lower()
-            ]
+## 2. Issue Category
 
-        st.dataframe(
-            pd.DataFrame(formulas[:1000]),
-            use_container_width=True,
-            hide_index=True,
-        )
+**{category}**
 
-        st.caption("Showing first 1000 filtered formulas for performance.")
+## 3. Severity / Priority
+
+**{severity}**
+
+## 4. Business Impact
+
+{business_impact}
+
+## 5. Missing Information
+
+The support ticket should be improved by collecting:
+
+- Browser and device details
+- User role or account type
+- Exact timestamp of the issue
+- Screenshots or screen recording
+- Backend logs
+- Network response status codes
+- Whether the issue happens for all users or only specific users
+
+## 6. Reproduction Steps
+
+1. Open the affected feature in the application.
+2. Follow the user workflow described in the support ticket.
+3. Perform the action that triggers the issue.
+4. Observe the application response.
+5. Compare the actual result with the expected behavior.
+
+## 7. Expected Behavior
+
+The application should complete the user workflow successfully and provide clear feedback.
+
+## 8. Actual Behavior
+
+The user workflow fails or behaves unexpectedly, and the support ticket suggests that feedback may be missing or unclear.
+
+## 9. Likely Affected Areas
+
+{chr(10).join([f"- {area}" for area in likely_areas])}
+
+## 10. Developer-Ready Task
+
+### Problem
+
+A user-facing issue was reported and needs developer investigation.
+
+### Technical Context
+
+{project_context if project_context else "No repository context was provided. Developer should inspect the related frontend, backend, validation, and error handling logic."}
+
+### Suggested Fix Plan
+
+1. Reproduce the issue locally.
+2. Inspect the likely affected modules.
+3. Check frontend validation and error states.
+4. Check backend API responses and logs.
+5. Implement the fix.
+6. Add tests to prevent regression.
+7. Update documentation if needed.
+
+## 11. Debugging Checklist
+
+- Confirm the issue can be reproduced.
+- Check browser console errors.
+- Inspect network requests and API responses.
+- Review backend logs.
+- Verify validation rules.
+- Confirm database or state changes.
+- Check whether errors are displayed to users.
+- Add logging if the failure is silent.
+
+## 12. Suggested Tests
+
+{chr(10).join([f"- {test}" for test in tests])}
+
+## 13. Acceptance Criteria
+
+- The issue is reproducible before the fix.
+- The issue is resolved after the fix.
+- The user receives clear feedback.
+- Related tests are added.
+- No regression is introduced in nearby functionality.
+
+## 14. IBM Bob Usage
+
+IBM Bob is used as the AI development partner to understand repository context, review workflows, suggest likely affected areas, improve documentation, generate testing ideas, and reduce repetitive triage work.
+"""
+
+    return analysis, category, severity, business_impact, likely_areas, tests
 
 
-def main() -> None:
-    inject_css()
-    hero()
+# ---------------------------------------------------------
+# Sidebar
+# ---------------------------------------------------------
+with st.sidebar:
+    st.markdown("""
+    <div class="sidebar-title">🛠️ Ticket2Fix</div>
+    <div class="sidebar-subtitle">
+        AI Support-to-Code Assistant<br>
+        powered by <b>IBM Bob</b>
+    </div>
+    """, unsafe_allow_html=True)
 
-    with st.sidebar:
-        st.title("Pricing Engine")
+    st.divider()
 
-        page = st.radio(
-            "Navigation",
-            [
-                "Dashboard",
-                "Edge Protector",
-                "Tubes / Cores",
-                "Materials",
-                "Formula Audit",
-            ],
-            label_visibility="collapsed",
-        )
+    st.markdown("""
+    <div class="sidebar-box">
+        <b>🚀 Demo Flow</b><br><br>
+        1. Select a sample ticket<br>
+        2. Add repository context<br>
+        3. Generate developer task<br>
+        4. Review tests and checklist<br>
+        5. Download Markdown output
+    </div>
+    """, unsafe_allow_html=True)
 
-        st.divider()
+    st.markdown("""
+    <div class="sidebar-box">
+        <b>🏆 Hackathon Focus</b><br><br>
+        Developer productivity<br>
+        Support-to-engineering workflow<br>
+        Repository-aware AI usage<br>
+        Testing and documentation
+    </div>
+    """, unsafe_allow_html=True)
 
-        st.caption("Built for GitHub + Streamlit deployment")
-        st.caption("Version: 0.1.0 MVP")
+    st.markdown("""
+<div class="sidebar-box">
+    <b>🎯 Best Demo Scenario</b><br><br>
+    Use <b>Authentication issue</b> to clearly show severity, affected modules,
+    debugging steps, acceptance criteria, and test planning.
+</div>
+""", unsafe_allow_html=True)
+    if st.session_state.history:
+        st.markdown("""
+        <div class="sidebar-box">
+            <b>📜 Recent Analyses</b><br><br>
+        """, unsafe_allow_html=True)
 
-    if page == "Dashboard":
-        dashboard_page()
-    elif page == "Edge Protector":
-        edge_page()
-    elif page == "Tubes / Cores":
-        tube_page()
-    elif page == "Materials":
-        materials_page()
-    elif page == "Formula Audit":
-        formula_audit_page()
+        for item in st.session_state.history[:3]:
+            st.caption(f"{item['timestamp']} · {item['category']} · {item['severity']}")
 
-    st.markdown(
-        """
-        <div class='footer'>
-            © IP Poland Pricing Engine · Excel-to-Python migration scaffold ·
-            Validate all pricing before commercial use.
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.divider()
+
+    st.caption("Built for IBM Bob Hackathon")
+
+# ---------------------------------------------------------
+# Hero
+# ---------------------------------------------------------
+st.markdown("""
+<div class="hero-container">
+<div class="floating-icon icon-one">🤖</div>
+<div class="floating-icon icon-two">🧠</div>
+<div class="floating-icon icon-three">⚙️</div>
+
+<div class="hero-content">
+<div class="hero-badge">IBM Bob Hackathon · Developer Productivity · AI Workflow</div>
+<div class="hero-title">Ticket2Fix</div>
+<div class="hero-subtitle">
+Transform vague support tickets into clear, testable, developer-ready engineering tasks.
+Designed to reduce the communication gap between support teams and software developers.
+</div>
+<br>
+<span class="pill">🛠️ Developer Tools</span>
+<span class="pill pill-green">✅ Test Planning</span>
+<span class="pill pill-purple">🤖 IBM Bob</span>
+<span class="pill pill-orange">⚡ Faster Triage</span>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------------
+# Product Value Cards
+# ---------------------------------------------------------
+st.markdown('<div class="section-title">Built for real software teams</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-subtitle">Ticket2Fix helps support, engineering, and QA teams move from issue report to fix plan faster.</div>', unsafe_allow_html=True)
+
+card1, card2, card3, card4 = st.columns(4)
+
+with card1:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🎧</div>
+        <div class="feature-title">Support Teams</div>
+        <div class="feature-text">
+            Turn unclear user complaints into structured engineering tickets.
         </div>
-        """,
-        unsafe_allow_html=True,
+    </div>
+    """, unsafe_allow_html=True)
+
+with card2:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">👨‍💻</div>
+        <div class="feature-title">Developers</div>
+        <div class="feature-text">
+            Get likely affected areas, reproduction steps, and debugging checklists.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with card3:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🧪</div>
+        <div class="feature-title">QA Teams</div>
+        <div class="feature-text">
+            Generate test ideas, regression checks, and acceptance criteria.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with card4:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <div class="feature-title">Documentation</div>
+        <div class="feature-text">
+            Export consistent Markdown summaries for GitHub, Jira, or internal docs.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.divider()
+
+
+# ---------------------------------------------------------
+# Main Workspace
+# ---------------------------------------------------------
+left_col, right_col = st.columns([0.9, 1.1], gap="large")
+
+with left_col:
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+
+    st.markdown('<div class="section-title">🎫 Ticket Input</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Choose a sample issue or paste your own support ticket.</div>', unsafe_allow_html=True)
+
+    with st.expander("👀 Preview Sample Tickets", expanded=False):
+        for name, content in SAMPLE_TICKETS.items():
+            st.markdown(f"**{name}**")
+            st.caption(content[:140] + "...")
+            st.divider()
+            
+    sample_choice = st.selectbox(
+        "Sample ticket",
+        ["Custom ticket"] + list(SAMPLE_TICKETS.keys())
     )
 
+    default_ticket = ""
+    if sample_choice != "Custom ticket":
+        default_ticket = SAMPLE_TICKETS[sample_choice]
 
-if __name__ == "__main__":
-    main()
+    ticket = st.text_area(
+        "Support ticket / bug report",
+        value=default_ticket,
+        height=220,
+        placeholder="Example: User cannot log in after resetting password..."
+    )
+    ticket_length = len(ticket)
+
+    if ticket_length == 0:
+        st.caption(":red[0 characters — add a support ticket to begin]")
+    elif ticket_length < 50:
+        st.caption(f":orange[{ticket_length} characters — short ticket, more context recommended]")
+    elif ticket_length <= 1000:
+        st.caption(f":green[{ticket_length} characters — good ticket length]")
+    else:
+        st.caption(f":orange[{ticket_length} characters — long ticket, consider summarizing]")
+
+    default_context = ""
+    if sample_choice == "Authentication issue":
+        default_context = "React frontend, Node.js backend, authentication service, password reset controller, login form component, session token generation, frontend error handling."
+    elif sample_choice == "Payment issue":
+        default_context = "React checkout page, Node.js API, payment provider integration, order service, webhook handler, transaction deduplication."
+    elif sample_choice == "Upload issue":
+        default_context = "Frontend upload component, Python backend API, file size validation, storage service, user profile module."
+    elif sample_choice == "Dashboard issue":
+        default_context = "React analytics dashboard, REST API, data fetching hook, loading state, error boundary, reporting service."
+
+    project_context = st.text_area(
+        "Repository / project context",
+        value=default_context,
+        height=145,
+        placeholder="Example: React frontend, Node.js backend, authentication module, password reset flow..."
+    )
+
+    generate = st.button("✨ Generate Developer-Ready Task", type="primary", use_container_width=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="glass-card">
+        <div class="section-title">🤖 IBM Bob Role</div>
+        <div class="section-subtitle">
+            IBM Bob supports repository understanding, workflow review, documentation, test planning,
+            and development acceleration.
+        </div>
+        <span class="pill">Repo Context</span>
+        <span class="pill pill-green">Code Review</span>
+        <span class="pill pill-purple">Docs</span>
+        <span class="pill pill-orange">Tests</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with right_col:
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+
+    st.markdown('<div class="section-title">📌 Generated Engineering Output</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">The generated result is structured for developers, QA, and support teams.</div>', unsafe_allow_html=True)
+
+    if generate:
+        if not ticket.strip():
+            st.warning("Please enter a support ticket first.")
+        else:
+            with st.spinner("Analyzing support ticket and generating developer-ready task..."):
+                time.sleep(0.8)
+
+                analysis, category, severity, business_impact, likely_areas, tests = analyze_ticket(
+                    ticket,
+                    project_context
+                )
+
+            confidence, keywords_found = calculate_confidence(ticket.lower())
+
+            st.session_state.analysis_count += 1
+
+            st.session_state.history.insert(0, {
+                "ticket": ticket[:50] + "...",
+                "category": category,
+                "severity": get_severity_level(severity),
+                "timestamp": time.strftime("%H:%M:%S")
+            })
+
+            st.session_state.history = st.session_state.history[:3]
+
+            st.success("✨ Developer-ready task generated successfully!")
+
+            if st.session_state.analysis_count == 1:
+                st.balloons()
+
+            metric1, metric2, metric3, metric4 = st.columns(4)
+
+            with metric1:
+                st.metric("Category", category)
+
+            with metric2:
+                st.metric("Severity", get_severity_level(severity))
+
+            with metric3:
+                st.metric("Affected Areas", len(likely_areas))
+
+            with metric4:
+                st.metric("Confidence", f"{confidence * 100:.0f}%")
+
+            tab1, tab2, tab3, tab4 = st.tabs([
+                "📄 Summary",
+                "🧭 Debug Plan",
+                "🧪 Tests",
+                "📥 Full Export"
+            ])
+
+            with tab1:
+                st.markdown("### Clean Bug Summary")
+                st.markdown(
+                    "The reported issue indicates that users are experiencing a problem that blocks or disrupts an expected workflow."
+                )
+
+                st.markdown("### Severity / Priority")
+                st.markdown(f"## {get_severity_badge(severity)}")
+                st.info(severity)
+
+                st.markdown("### Classification Confidence")
+                st.progress(confidence)
+                st.caption(f"Confidence score: {confidence * 100:.0f}%")
+
+                st.markdown("### Business Impact")
+                st.warning(business_impact)
+
+                st.markdown("### Copyable Summary")
+                summary_text = f"""Category: {category}
+Severity: {severity}
+Business Impact: {business_impact}
+Likely Affected Areas: {', '.join(likely_areas)}
+"""
+                st.code(summary_text, language="text")
+                st.caption("Use the copy icon in the code block to copy this summary.")
+
+                with st.expander("🤔 Why this classification?"):
+                    if keywords_found:
+                        st.markdown("**Keywords detected:**")
+                        st.write(", ".join(keywords_found))
+                    else:
+                        st.markdown("**Keywords detected:** No strong keyword match.")
+                        st.caption("The app used general ticket structure and available context.")
+
+                    st.markdown("**Pattern match:**")
+                    st.write(category)
+
+                    st.markdown("**Reasoning:**")
+                    st.write(
+                        "Ticket2Fix maps issue keywords and project context to likely affected engineering areas. "
+                        "IBM Bob was used during development to review this workflow and improve the generated developer task structure."
+                    )
+
+                st.markdown("### Likely Affected Areas")
+                for area in likely_areas:
+                    st.markdown(f"- `{area}`")
+
+            with tab2:
+                st.markdown("### Reproduction Steps")
+                st.markdown("""
+1. Open the affected feature in the application.
+2. Follow the user workflow described in the support ticket.
+3. Perform the action that triggers the issue.
+4. Observe the application response.
+5. Compare the actual result with the expected behavior.
+                """)
+
+                st.markdown("### Debugging Checklist")
+                st.markdown("""
+- Confirm the issue can be reproduced.
+- Check browser console errors.
+- Inspect network requests and API responses.
+- Review backend logs.
+- Verify validation rules.
+- Confirm database or state changes.
+- Check whether errors are displayed to users.
+- Add logging if the failure is silent.
+                """)
+
+            with tab3:
+                st.markdown("### Suggested Tests")
+                for test in tests:
+                    st.markdown(f"- ✅ {test}")
+
+                st.markdown("### Acceptance Criteria")
+                st.markdown("""
+- The issue is reproducible before the fix.
+- The issue is resolved after the fix.
+- The user receives clear feedback.
+- Related tests are added.
+- No regression is introduced in nearby functionality.
+                """)
+
+            with tab4:
+                st.markdown("### Full Markdown Output")
+                st.markdown(analysis)
+
+                st.markdown("### Download Options")
+
+                markdown_data = analysis
+
+                json_data = build_json_export(
+                    category,
+                    severity,
+                    business_impact,
+                    likely_areas,
+                    tests,
+                    ticket,
+                    project_context
+                )
+
+                plain_text_data = build_plain_text_export(
+                    category,
+                    severity,
+                    business_impact,
+                    likely_areas,
+                    tests,
+                    ticket,
+                    project_context
+                )
+
+                download_col1, download_col2, download_col3 = st.columns(3)
+
+                with download_col1:
+                    st.download_button(
+                        label="📥 Markdown",
+                        data=markdown_data,
+                        file_name="ticket2fix-analysis.md",
+                        mime="text/markdown",
+                        use_container_width=True
+                    )
+
+                with download_col2:
+                    st.download_button(
+                        label="📥 JSON",
+                        data=json_data,
+                        file_name="ticket2fix-analysis.json",
+                        mime="application/json",
+                        use_container_width=True
+                    )
+
+                with download_col3:
+                    st.download_button(
+                        label="📥 Plain Text",
+                        data=plain_text_data,
+                        file_name="ticket2fix-analysis.txt",
+                        mime="text/plain",
+                        use_container_width=True
+                    )
+
+    else:
+        st.info("Choose a sample ticket or paste your own ticket, then click Generate Developer-Ready Task.")
+
+        st.markdown("""
+<div class="output-box">
+<div class="mini-label">Preview</div>
+<b>Generated output will include:</b><br><br>
+✅ Clean bug summary<br>
+✅ Severity and business impact<br>
+✅ Missing information checklist<br>
+✅ Reproduction steps<br>
+✅ Likely affected areas<br>
+✅ Debugging checklist<br>
+✅ Suggested tests<br>
+✅ Acceptance criteria<br>
+✅ Markdown, JSON, and Plain Text export
+</div>
+""", unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+# ---------------------------------------------------------
+# Workflow Section
+# ---------------------------------------------------------
+st.divider()
+
+st.markdown('<div class="section-title">How the workflow works</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-subtitle">A simple but practical flow from vague report to developer action.</div>', unsafe_allow_html=True)
+
+flow1, flow2, flow3, flow4, flow5 = st.columns(5)
+
+with flow1:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🎫</div>
+        <div class="feature-title">1. Ticket</div>
+        <div class="feature-text">Paste an unclear support ticket or bug report.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with flow2:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <div class="feature-title">2. Context</div>
+        <div class="feature-text">Add project or repository context for better analysis.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with flow3:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">3. IBM Bob</div>
+        <div class="feature-text">Use IBM Bob to support repo understanding and workflow review.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with flow4:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🛠️</div>
+        <div class="feature-title">4. Dev Task</div>
+        <div class="feature-text">Generate a clear engineering task and debugging plan.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with flow5:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🧪</div>
+        <div class="feature-title">5. Tests</div>
+        <div class="feature-text">Create acceptance criteria and regression test ideas.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------
+# Business Value Section
+# ---------------------------------------------------------
+st.divider()
+
+value_col1, value_col2 = st.columns([1, 1], gap="large")
+
+with value_col1:
+    st.markdown("""
+    <div class="glass-card">
+        <div class="section-title">📈 Business Value</div>
+        <div class="section-subtitle">
+            Ticket2Fix reduces friction between support and engineering.
+        </div>
+        <ul>
+            <li>Reduces back-and-forth between support and developers</li>
+            <li>Improves bug report quality</li>
+            <li>Speeds up engineering triage</li>
+            <li>Helps junior developers understand issues faster</li>
+            <li>Encourages consistent testing and acceptance criteria</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+with value_col2:
+    st.markdown("""
+    <div class="glass-card">
+        <div class="section-title">🏆 Hackathon Alignment</div>
+        <div class="section-subtitle">
+            The project demonstrates how IBM Bob can support real developer workflows.
+        </div>
+        <ul>
+            <li>Improves how software is built</li>
+            <li>Uses repository-aware AI development assistance</li>
+            <li>Reduces repetitive triage work</li>
+            <li>Supports documentation and test planning</li>
+            <li>Creates practical value for real software teams</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------
+# Footer
+# ---------------------------------------------------------
+st.markdown("""
+<div class="footer">
+    <b>Ticket2Fix</b> · AI Support-to-Code Assistant · Built for the IBM Bob Hackathon<br>
+    Turning messy support tickets into developer-ready engineering tasks.
+</div>
+""", unsafe_allow_html=True)
