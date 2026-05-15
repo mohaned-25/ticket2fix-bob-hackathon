@@ -1,56 +1,110 @@
-# Ticket2Fix — AI Support-to-Code Assistant powered by IBM Bob
+# 🎫 Ticket2Fix — AI Support-to-Code Assistant powered by IBM Bob
 
-Ticket2Fix converts vague support tickets into developer-ready tasks, debugging steps, acceptance criteria, and test plans.
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+![Hackathon](https://img.shields.io/badge/Hackathon-IBM%20Bob%20Hackathon-blue)
+![Built with](https://img.shields.io/badge/Built%20with-IBM%20Bob-purple)
+![App](https://img.shields.io/badge/Demo-Streamlit-red)
 
-## Problem
+## 🚀 Overview
 
-Support tickets are often incomplete, unclear, and difficult for developers to act on.
+**Ticket2Fix** is an AI-powered workflow assistant that converts unclear support tickets and bug reports into **developer-ready engineering tasks**.
 
-Example:
+Support tickets are often vague, incomplete, and difficult for developers to act on. Ticket2Fix bridges the gap between **support teams** and **engineering teams** by transforming messy user reports into structured bug summaries, reproduction steps, likely affected code areas, debugging checklists, acceptance criteria, and suggested test plans.
 
-> After resetting password, users cannot log in. The page reloads but no error message appears.
+This project was built for the **IBM Bob Hackathon** using **IBM Bob as an AI development partner**.
 
-Developers then need to manually investigate the issue, ask for clarification, identify possible affected files, write reproduction steps, and create test cases.
+---
 
-## Solution
+## 🔗 Project Links
 
-Ticket2Fix transforms a vague support ticket into a structured developer-ready task.
+- 🌐 **Live Demo:** https://ticket2fix-bob-hackathon-mg9zabsxrm3vkwn5fg8a2s.streamlit.app/
+- 💻 **GitHub Repository:** https://github.com/mohaned-25/ticket2fix-bob-hackathon
+- 🎥 **Demo Video:** Coming soon
+- 📊 **Slide Deck:** Coming soon
+- 📄 **IBM Bob Report:** `docs/ibm-bob-report.pdf`
+- 🧠 **IBM Bob Usage Summary:** `docs/bob-usage-summary.md`
 
-It generates:
+---
 
-- Clean bug summary
-- Severity and priority
-- Missing information checklist
-- Reproduction steps
-- Expected and actual behavior
-- Likely affected areas
+## 🎯 Problem
+
+In real software teams, support tickets often arrive like this:
+
+> “Several users report that their payment fails during checkout.  
+> The card is charged, but the order is not created.  
+> Users see a generic message saying ‘Something went wrong’.”
+
+This type of ticket creates friction because it often lacks:
+
+- Clear reproduction steps
+- Expected vs actual behavior
+- Technical context
+- Possible affected files
 - Debugging checklist
-- Suggested tests
+- Test requirements
 - Acceptance criteria
+- Severity and business impact
 
-## IBM Bob Usage
+As a result, developers spend extra time investigating, asking for clarification, and manually translating user-reported issues into actionable engineering tasks.
 
-IBM Bob was used as the AI development partner for this project.
+---
+
+## 💡 Solution
+
+**Ticket2Fix** converts vague support tickets into structured developer-ready tasks.
+
+The user provides:
+
+1. 📝 A support ticket or bug report  
+2. 🧩 Repository or project context  
+
+Ticket2Fix generates:
+
+- ✅ Clean bug summary
+- 🚨 Severity estimation
+- ❓ Missing information checklist
+- 🔁 Reproduction steps
+- 🎯 Expected behavior
+- 🐞 Actual behavior
+- 🧱 Likely affected modules
+- 📂 Suggested files to inspect
+- 🛠️ Debugging checklist
+- 👨‍💻 Developer-ready task
+- 📌 Acceptance criteria
+- 🧪 Suggested test cases
+
+---
+
+## 🤖 How IBM Bob Is Used
+
+IBM Bob was used as the AI development partner throughout this project.
 
 IBM Bob helped with:
 
-- Repository understanding
-- Architecture review
-- Feature planning
-- Documentation generation
-- Test plan generation
-- Code review
-- Workflow improvement
+- Understanding the repository structure
+- Explaining the application architecture
+- Planning the support-to-development workflow
+- Identifying likely affected files and modules
+- Improving frontend and backend implementation
+- Generating documentation
+- Suggesting test scenarios
+- Refining the debugging checklist
+- Reducing repetitive manual development work
 
-## Tech Stack
+This project demonstrates how IBM Bob can support repository-aware software development by helping transform unclear support issues into structured engineering workflows.
 
-- Python
-- Streamlit
-- IBM Bob
+---
 
-## Run Locally
+## ✨ Key Features
 
-Install dependencies:
+### 🎫 1. Ticket Analyzer
 
-```bash
-pip install -r requirements.txt
+Converts unclear support tickets into structured issue summaries.
+
+**Example input:**
+
+```text
+Several users report that their payment fails during checkout.
+The card is charged, but the order is not created in the system.
+Users see a generic message saying "Something went wrong".
+This started happening after the latest deployment.
