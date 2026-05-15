@@ -910,7 +910,6 @@ st.session_state.last_analysis = {
     "ticket": ticket,
     "project_context": project_context
 }
-                status.update(label="Analysis complete!", state="complete")
 
             confidence, keywords_found = calculate_confidence(ticket.lower())
 
