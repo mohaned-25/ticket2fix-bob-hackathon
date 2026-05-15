@@ -577,23 +577,23 @@ with st.sidebar:
 # ---------------------------------------------------------
 st.markdown("""
 <div class="hero-container">
-    <div class="floating-icon icon-one">🤖</div>
-    <div class="floating-icon icon-two">🧠</div>
-    <div class="floating-icon icon-three">⚙️</div>
+<div class="floating-icon icon-one">🤖</div>
+<div class="floating-icon icon-two">🧠</div>
+<div class="floating-icon icon-three">⚙️</div>
 
-    <div class="hero-content">
-        <div class="hero-badge">IBM Bob Hackathon · Developer Productivity · AI Workflow</div>
-        <div class="hero-title">Ticket2Fix</div>
-        <div class="hero-subtitle">
-            Transform vague support tickets into clear, testable, developer-ready engineering tasks.
-            Designed to reduce the communication gap between support teams and software developers.
-        </div>
-        <br>
-        <span class="pill">🛠️ Developer Tools</span>
-        <span class="pill pill-green">✅ Test Planning</span>
-        <span class="pill pill-purple">🤖 IBM Bob</span>
-        <span class="pill pill-orange">⚡ Faster Triage</span>
-    </div>
+<div class="hero-content">
+<div class="hero-badge">IBM Bob Hackathon · Developer Productivity · AI Workflow</div>
+<div class="hero-title">Ticket2Fix</div>
+<div class="hero-subtitle">
+Transform vague support tickets into clear, testable, developer-ready engineering tasks.
+Designed to reduce the communication gap between support teams and software developers.
+</div>
+<br>
+<span class="pill">🛠️ Developer Tools</span>
+<span class="pill pill-green">✅ Test Planning</span>
+<span class="pill pill-purple">🤖 IBM Bob</span>
+<span class="pill pill-orange">⚡ Faster Triage</span>
+</div>
 </div>
 """, unsafe_allow_html=True)
 
