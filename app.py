@@ -877,7 +877,7 @@ with right_col:
         if not ticket.strip():
             st.warning("Please enter a support ticket first.")
         else:
-            with st.status("Analyzing support ticket...", expanded=True) as status:
+          with st.status("Analyzing support ticket...", expanded=True) as status:
                 st.write("🔍 Classifying issue type...")
                 time.sleep(0.25)
 
@@ -897,6 +897,7 @@ with right_col:
                     ticket,
                     project_context
                 )
+                status.update(label="Analysis complete!", state="complete")
 st.session_state.last_analysis = {
     "analysis": analysis,
     "category": category,
