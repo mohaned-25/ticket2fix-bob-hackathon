@@ -1,10 +1,65 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="Ticket2Fix",
+    page_title="Ticket2Fix | IBM Bob Hackathon",
     page_icon="🛠️",
     layout="wide"
 )
+
+# -----------------------------
+# Custom Styling
+# -----------------------------
+st.markdown("""
+<style>
+    .main {
+        background-color: #f8fafc;
+    }
+
+    .hero-box {
+        background: linear-gradient(135deg, #0f172a, #1e40af);
+        padding: 2rem;
+        border-radius: 18px;
+        color: white;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        color: #dbeafe;
+    }
+
+    .info-card {
+        background-color: white;
+        padding: 1.3rem;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0px 2px 8px rgba(15, 23, 42, 0.06);
+        margin-bottom: 1rem;
+    }
+
+    .metric-card {
+        background-color: #ffffff;
+        padding: 1rem;
+        border-radius: 14px;
+        border-left: 5px solid #2563eb;
+        box-shadow: 0px 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .footer {
+        text-align: center;
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-top: 2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 
 SAMPLE_TICKETS = {
     "Authentication issue": """After resetting password, users cannot log in.
@@ -31,6 +86,7 @@ def analyze_ticket(ticket, project_context):
             "Frontend error handling"
         ]
         severity = "High — authentication issue affecting user access."
+        category = "Authentication / Access"
         tests = [
             "Login succeeds after password reset.",
             "Login fails with the old password.",
@@ -48,6 +104,7 @@ def analyze_ticket(ticket, project_context):
             "Backend payment webhook handler"
         ]
         severity = "Critical — payment issue that may cause financial impact."
+        category = "Payments / Checkout"
         tests = [
             "Multiple checkout clicks do not create duplicate payments.",
             "Payment request is disabled after first submission.",
@@ -65,6 +122,7 @@ def analyze_ticket(ticket, project_context):
             "Storage service integration"
         ]
         severity = "Medium — user-facing feature issue with poor feedback."
+        category = "File Upload / Validation"
         tests = [
             "Files smaller than the limit upload successfully.",
             "Files larger than the limit show a clear error.",
@@ -82,6 +140,7 @@ def analyze_ticket(ticket, project_context):
             "Data persistence layer"
         ]
         severity = "Medium — requires investigation."
+        category = "General Application Issue"
         tests = [
             "Reported issue can be reproduced.",
             "Expected behavior is restored.",
@@ -91,19 +150,25 @@ def analyze_ticket(ticket, project_context):
         ]
 
     result = f"""
+# Developer-Ready Analysis
+
 ## 1. Clean Bug Summary
 
 The reported issue indicates that users are experiencing a problem that blocks or disrupts an expected workflow.
 
-Original ticket:
+**Original ticket:**
 
 > {ticket}
 
-## 2. Severity / Priority
+## 2. Issue Category
+
+**{category}**
+
+## 3. Severity / Priority
 
 **{severity}**
 
-## 3. Missing Information
+## 4. Missing Information
 
 The support ticket should be improved by collecting:
 
@@ -115,7 +180,7 @@ The support ticket should be improved by collecting:
 - Network response status codes
 - Whether the issue happens for all users or only specific users
 
-## 4. Reproduction Steps
+## 5. Reproduction Steps
 
 1. Open the affected feature in the application.
 2. Follow the user workflow described in the support ticket.
@@ -123,19 +188,19 @@ The support ticket should be improved by collecting:
 4. Observe the application response.
 5. Compare the actual result with the expected behavior.
 
-## 5. Expected Behavior
+## 6. Expected Behavior
 
 The application should complete the user workflow successfully and provide clear feedback.
 
-## 6. Actual Behavior
+## 7. Actual Behavior
 
 The user workflow fails or behaves unexpectedly, and the support ticket suggests that feedback may be missing or unclear.
 
-## 7. Likely Affected Areas
+## 8. Likely Affected Areas
 
 {chr(10).join([f"- {area}" for area in likely_areas])}
 
-## 8. Developer-Ready Task
+## 9. Developer-Ready Task
 
 ### Problem
 
@@ -155,7 +220,7 @@ A user-facing issue was reported and needs developer investigation.
 6. Add tests to prevent regression.
 7. Update documentation if needed.
 
-## 9. Debugging Checklist
+## 10. Debugging Checklist
 
 - Confirm the issue can be reproduced.
 - Check browser console errors.
@@ -166,11 +231,11 @@ A user-facing issue was reported and needs developer investigation.
 - Check whether errors are displayed to users.
 - Add logging if the failure is silent.
 
-## 10. Suggested Tests
+## 11. Suggested Tests
 
 {chr(10).join([f"- {test}" for test in tests])}
 
-## 11. Acceptance Criteria
+## 12. Acceptance Criteria
 
 - The issue is reproducible before the fix.
 - The issue is resolved after the fix.
@@ -178,27 +243,102 @@ A user-facing issue was reported and needs developer investigation.
 - Related tests are added.
 - No regression is introduced in nearby functionality.
 
-## 12. IBM Bob Usage
+## 13. IBM Bob Usage
 
-IBM Bob is used as the AI development partner to understand the repository, review the workflow, suggest likely affected areas, improve documentation, generate testing ideas, and reduce repetitive triage work.
+IBM Bob is used as the AI development partner to understand repository context, review workflows, suggest likely affected areas, improve documentation, generate testing ideas, and reduce repetitive triage work.
 """
-    return result
+    return result, category, severity, likely_areas, tests
 
 
-st.title("🛠️ Ticket2Fix")
-st.subheader("AI Support-to-Code Assistant powered by IBM Bob")
+# -----------------------------
+# Sidebar
+# -----------------------------
+with st.sidebar:
+    st.title("🛠️ Ticket2Fix")
 
+    st.markdown("""
+    **AI Support-to-Code Assistant**  
+    powered by **IBM Bob**
+    """)
+
+    st.divider()
+
+    st.subheader("Demo Steps")
+    st.markdown("""
+    1. Choose a sample ticket  
+    2. Add project context  
+    3. Generate developer task  
+    4. Review debugging checklist  
+    5. Download Markdown output  
+    """)
+
+    st.divider()
+
+    st.subheader("Best Demo Input")
+    st.info("Use the Authentication issue for the final hackathon demo.")
+
+    st.divider()
+
+    st.markdown("""
+    **Hackathon:** IBM Bob Hackathon  
+    **Stack:** Python + Streamlit  
+    **Focus:** Developer productivity
+    """)
+
+
+# -----------------------------
+# Hero Section
+# -----------------------------
 st.markdown("""
-Ticket2Fix converts vague support tickets into developer-ready tasks, debugging steps, acceptance criteria, and test plans.
+<div class="hero-box">
+    <div class="hero-title">Ticket2Fix</div>
+    <div class="hero-subtitle">
+        Turn vague support tickets into developer-ready engineering tasks with IBM Bob.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-The project is designed for the IBM Bob Hackathon to demonstrate how repository-aware AI can improve the software development workflow.
-""")
+
+# -----------------------------
+# Value Cards
+# -----------------------------
+col_a, col_b, col_c = st.columns(3)
+
+with col_a:
+    st.markdown("""
+    <div class="metric-card">
+        <h4>Support Teams</h4>
+        <p>Convert unclear reports into structured tickets.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_b:
+    st.markdown("""
+    <div class="metric-card">
+        <h4>Developers</h4>
+        <p>Get reproduction steps, debugging checklist, and affected areas.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_c:
+    st.markdown("""
+    <div class="metric-card">
+        <h4>QA Teams</h4>
+        <p>Generate acceptance criteria and suggested regression tests.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.divider()
 
-col1, col2 = st.columns([1, 1])
 
-with col1:
+# -----------------------------
+# Main App Layout
+# -----------------------------
+left_col, right_col = st.columns([0.95, 1.05])
+
+with left_col:
+    st.markdown('<div class="info-card">', unsafe_allow_html=True)
+
     st.header("Input")
 
     sample_choice = st.selectbox(
@@ -219,38 +359,67 @@ with col1:
 
     project_context = st.text_area(
         "Repository or project context",
+        value="React frontend, Node.js backend, authentication service, password reset controller, login form component, session token generation, frontend error handling." if sample_choice == "Authentication issue" else "",
         height=140,
         placeholder="Example: React frontend, Node.js backend, authentication module, password reset flow..."
     )
 
-    generate = st.button("Generate Developer Task", type="primary")
+    generate = st.button("Generate Developer Task", type="primary", use_container_width=True)
 
-with col2:
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+with right_col:
+    st.markdown('<div class="info-card">', unsafe_allow_html=True)
+
     st.header("Output")
 
     if generate:
         if not ticket.strip():
             st.warning("Please enter a support ticket first.")
         else:
-            analysis = analyze_ticket(ticket, project_context)
+            analysis, category, severity, likely_areas, tests = analyze_ticket(ticket, project_context)
+
+            st.success("Developer-ready task generated successfully.")
+
+            metric_1, metric_2 = st.columns(2)
+            with metric_1:
+                st.metric("Issue Category", category)
+            with metric_2:
+                st.metric("Likely Areas", len(likely_areas))
+
             st.markdown(analysis)
+
             st.download_button(
                 label="Download Analysis as Markdown",
                 data=analysis,
                 file_name="ticket2fix-analysis.md",
-                mime="text/markdown"
+                mime="text/markdown",
+                use_container_width=True
             )
     else:
         st.info("Enter a support ticket and click Generate Developer Task.")
 
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# -----------------------------
+# About Section
+# -----------------------------
 st.divider()
 
 st.markdown("""
-### Why Ticket2Fix matters
+## Why Ticket2Fix matters
 
-Support tickets are often incomplete and hard for developers to act on. Ticket2Fix reduces the communication gap between support and engineering by turning messy tickets into clear, structured, developer-ready tasks.
+Support tickets are often incomplete, vague, and difficult for developers to act on. Ticket2Fix reduces the communication gap between support and engineering by turning messy tickets into clear, structured, developer-ready tasks.
 
-### Built with IBM Bob
+## How IBM Bob supports the workflow
 
 IBM Bob supports the project by helping understand repository context, improve the workflow, generate documentation, suggest test cases, and reduce repetitive development work.
 """)
+
+st.markdown("""
+<div class="footer">
+Built for the IBM Bob Hackathon | Ticket2Fix | AI Support-to-Code Assistant
+</div>
+""", unsafe_allow_html=True)
