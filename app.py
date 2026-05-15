@@ -14,71 +14,46 @@ st.set_page_config(
     layout="wide"
 )
 
-
 SAMPLE_TICKETS = {
-    "Password Reset Login Issue": """
-After resetting password, users cannot log in.
+    "Password Reset Login Issue": """After resetting password, users cannot log in.
 The page refreshes but does not show an error message.
-This happens only after using the reset password link.
-""",
-    "Checkout Payment Failure": """
-Customers cannot complete checkout.
+This happens only after using the reset password link.""",
+
+    "Checkout Payment Failure": """Customers cannot complete checkout.
 The payment button keeps loading and no confirmation appears.
-Some users report being charged twice.
-""",
-    "Profile Update Error": """
-Users cannot update their profile information.
-After clicking save, the page reloads but the new information is not stored.
-"""
+Some users report being charged twice.""",
+
+    "Profile Update Error": """Users cannot update their profile information.
+After clicking save, the page reloads but the new information is not stored."""
 }
 
-
-st.markdown(
-    """
-    <style>
-    .hero {
-        padding: 2rem;
-        border-radius: 20px;
-        background: linear-gradient(135deg, #1f2937, #2563eb);
-        color: white;
-        margin-bottom: 1.5rem;
-    }
-
-    .hero h1 {
-        font-size: 2.8rem;
-        margin-bottom: 0.3rem;
-    }
-
-    .card {
-        padding: 1.2rem;
-        border-radius: 16px;
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-        margin-bottom: 1rem;
-    }
-
-    .badge {
-        padding: 0.35rem 0.7rem;
-        border-radius: 999px;
-        font-weight: 700;
-        display: inline-block;
-        margin-bottom: 0.7rem;
-    }
-
-    .critical { background: #fee2e2; color: #991b1b; }
-    .high { background: #ffedd5; color: #9a3412; }
-    .medium { background: #fef9c3; color: #854d0e; }
-    .low { background: #dcfce7; color: #166534; }
-
-    @media (max-width: 768px) {
-        .hero h1 {
-            font-size: 2rem;
-        }
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<style>
+.hero {
+    padding: 2rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #020617, #2563eb);
+    color: white;
+    margin-bottom: 1.5rem;
+}
+.card {
+    padding: 1.2rem;
+    border-radius: 16px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1rem;
+}
+.badge {
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    font-weight: 700;
+    display: inline-block;
+}
+.high { background: #ffedd5; color: #9a3412; }
+.medium { background: #fef9c3; color: #854d0e; }
+.low { background: #dcfce7; color: #166534; }
+</style>
+""", unsafe_allow_html=True)
 
 
 if "history" not in st.session_state:
@@ -86,75 +61,6 @@ if "history" not in st.session_state:
 
 if "last_result" not in st.session_state:
     st.session_state.last_result = None
-
-
-st.markdown(
-    """
-    <div class="hero">
-        <h1>🛠️ Ticket2Fix</h1>
-        <p><strong>AI Support-to-Code Assistant powered by IBM Bob</strong></p>
-        <p>Turn unclear support tickets into developer-ready tasks, likely affected files, debugging checklists, and test plans.</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-with st.sidebar:
-    st.header("📌 Demo Guide")
-    st.write("1. Choose a sample ticket or write your own.")
-    st.write("2. Add a GitHub repository URL.")
-    st.write("3. Click **Analyze Ticket**.")
-    st.write("4. Export the generated developer task.")
-
-    st.divider()
-
-    if st.session_state.history:
-        st.subheader("📜 Recent Analyses")
-        for item in st.session_state.history:
-            st.caption(f"{item['time']} — {item['category']} — {item['severity']}")
-
-
-st.subheader("🎫 Support Ticket Input")
-
-with st.expander("👀 Preview Sample Tickets"):
-    for name, content in SAMPLE_TICKETS.items():
-        st.markdown(f"**{name}**")
-        st.caption(content.strip()[:130] + "...")
-        st.divider()
-
-
-selected_sample = st.selectbox(
-    "Choose a sample ticket",
-    ["Write my own"] + list(SAMPLE_TICKETS.keys())
-)
-
-default_ticket = ""
-if selected_sample != "Write my own":
-    default_ticket = SAMPLE_TICKETS[selected_sample].strip()
-
-repo_url = st.text_input(
-    "GitHub Repository URL",
-    placeholder="https://github.com/username/project-repo"
-)
-
-ticket_text = st.text_area(
-    "Support Ticket / Bug Report",
-    value=default_ticket,
-    height=180,
-    placeholder="Paste the support ticket here..."
-)
-
-ticket_length = len(ticket_text)
-
-if ticket_length == 0:
-    st.caption(":red[0 characters — please enter a ticket]")
-elif ticket_length < 50:
-    st.caption(f":orange[{ticket_length} characters — add more details if possible]")
-elif ticket_length <= 1000:
-    st.caption(f":green[{ticket_length} characters — good ticket length]")
-else:
-    st.caption(f":orange[{ticket_length} characters — ticket may be too long]")
 
 
 def get_category(ticket):
@@ -166,13 +72,13 @@ def get_category(ticket):
         return "Payment"
     if "profile" in text or "account" in text:
         return "User Account"
+
     return "General Application Issue"
 
 
 def get_confidence(ticket):
     text = ticket.lower()
     keywords = ["password", "login", "auth", "checkout", "payment", "profile", "account"]
-
     matched = [word for word in keywords if word in text]
 
     if len(matched) >= 3:
@@ -188,47 +94,107 @@ def get_confidence(ticket):
 def severity_badge(severity):
     level = severity.split("—")[0].strip()
 
-    if level == "Critical":
-        css_class = "critical"
-        icon = "🔴"
-    elif level == "High":
-        css_class = "high"
-        icon = "🟠"
-    elif level == "Medium":
-        css_class = "medium"
-        icon = "🟡"
-    else:
-        css_class = "low"
-        icon = "🟢"
+    if level == "High":
+        return f'<span class="badge high">🟠 {severity}</span>'
+    if level == "Medium":
+        return f'<span class="badge medium">🟡 {severity}</span>'
 
-    return f'<span class="badge {css_class}">{icon} {severity}</span>'
+    return f'<span class="badge low">🟢 {severity}</span>'
 
 
-analyze_button = st.button("🚀 Analyze Ticket", use_container_width=True)
+st.markdown("""
+<div class="hero">
+    <h1>🛠️ Ticket2Fix</h1>
+    <h3>IBM Bob-assisted Support-to-Code Assistant</h3>
+    <p>
+    Ticket2Fix converts unclear support tickets into developer-ready tasks,
+    likely affected files, debugging checklists, and test plans.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
-if analyze_button:
+
+with st.sidebar:
+    st.header("📌 Demo Guide")
+    st.write("1. Choose a sample ticket or write your own.")
+    st.write("2. Add a GitHub repository URL.")
+    st.write("3. Paste IBM Bob repository notes if available.")
+    st.write("4. Click Analyze Ticket.")
+    st.write("5. Export the result.")
+
+    st.divider()
+
+    if st.session_state.history:
+        st.subheader("📜 Recent Analyses")
+        for item in st.session_state.history:
+            st.caption(f"{item['time']} — {item['category']} — {item['severity']}")
+
+
+st.subheader("🎫 Support Ticket Input")
+
+with st.expander("👀 Preview Sample Tickets"):
+    for name, content in SAMPLE_TICKETS.items():
+        st.markdown(f"**{name}**")
+        st.caption(content[:130] + "...")
+        st.divider()
+
+
+selected_sample = st.selectbox(
+    "Choose a sample ticket",
+    ["Write my own"] + list(SAMPLE_TICKETS.keys())
+)
+
+default_ticket = ""
+if selected_sample != "Write my own":
+    default_ticket = SAMPLE_TICKETS[selected_sample]
+
+repo_url = st.text_input(
+    "GitHub Repository URL",
+    placeholder="https://github.com/username/project-repo"
+)
+
+bob_notes = st.text_area(
+    "IBM Bob Repository Notes / Exported Bob Analysis",
+    height=120,
+    placeholder="Paste IBM Bob's repository explanation, affected files, architecture notes, or exported Bob report summary here..."
+)
+
+ticket_text = st.text_area(
+    "Support Ticket / Bug Report",
+    value=default_ticket,
+    height=180,
+    placeholder="Paste the support ticket here..."
+)
+
+ticket_length = len(ticket_text)
+
+if ticket_length == 0:
+    st.caption(":red[0 characters — please enter a ticket]")
+elif ticket_length < 50:
+    st.caption(f":orange[{ticket_length} characters — add more details if possible]")
+else:
+    st.caption(f":green[{ticket_length} characters — good ticket length]")
+
+
+if st.button("🚀 Analyze Ticket", use_container_width=True):
     if not ticket_text.strip():
         st.error("Please enter a support ticket before analyzing.")
     else:
         with st.status("Analyzing ticket with Ticket2Fix...", expanded=True) as status:
             st.write("🔍 Classifying issue type...")
             time.sleep(0.3)
-
             category = get_category(ticket_text)
 
             st.write("📊 Estimating severity...")
             time.sleep(0.3)
-
             severity = estimate_severity(ticket_text)
 
-            st.write("🧠 Identifying likely affected repository areas...")
+            st.write("🧠 Finding repository context...")
             time.sleep(0.3)
+            repo_analysis = find_code_context(ticket_text, repo_url, bob_notes)
 
-            repo_analysis = find_code_context(ticket_text, repo_url)
-
-            st.write("📝 Generating developer-ready task...")
+            st.write("📝 Generating developer task...")
             time.sleep(0.3)
-
             ticket_analysis = analyze_ticket(ticket_text)
             developer_task = generate_developer_task(
                 ticket_text,
@@ -236,9 +202,8 @@ if analyze_button:
                 repo_analysis
             )
 
-            st.write("🧪 Generating suggested test plan...")
+            st.write("🧪 Generating test plan...")
             time.sleep(0.3)
-
             test_plan = generate_test_plan(ticket_text, repo_analysis)
 
             confidence, detected_keywords = get_confidence(ticket_text)
@@ -252,6 +217,7 @@ if analyze_button:
         st.session_state.last_result = {
             "ticket": ticket_text,
             "repo_url": repo_url,
+            "bob_notes": bob_notes,
             "category": category,
             "severity": severity,
             "confidence": confidence,
@@ -262,15 +228,12 @@ if analyze_button:
             "test_plan": test_plan
         }
 
-        st.session_state.history.insert(
-            0,
-            {
-                "time": time.strftime("%H:%M:%S"),
-                "category": category,
-                "severity": severity,
-                "ticket": ticket_text[:60] + "..."
-            }
-        )
+        st.session_state.history.insert(0, {
+            "time": time.strftime("%H:%M:%S"),
+            "category": category,
+            "severity": severity,
+            "ticket": ticket_text[:60] + "..."
+        })
 
         st.session_state.history = st.session_state.history[:3]
 
@@ -282,7 +245,6 @@ result = st.session_state.last_result
 
 if result:
     st.divider()
-
     st.subheader("📊 Analysis Overview")
 
     col1, col2, col3 = st.columns(3)
@@ -291,10 +253,7 @@ if result:
         st.metric("Issue Category", result["category"])
 
     with col2:
-        st.markdown(
-            severity_badge(result["severity"]),
-            unsafe_allow_html=True
-        )
+        st.markdown(severity_badge(result["severity"]), unsafe_allow_html=True)
 
     with col3:
         confidence_percent = int(result["confidence"] * 100)
@@ -306,46 +265,36 @@ if result:
             st.write("Detected keywords:")
             st.code(", ".join(result["detected_keywords"]))
         else:
-            st.write("No strong keyword match found. Ticket was classified as a general application issue.")
+            st.write("No strong keyword match found.")
 
         st.write(
-            "Ticket2Fix uses the ticket content to identify the likely workflow, "
-            "then IBM Bob can be used to inspect repository context and confirm affected files."
+            "Ticket2Fix uses the ticket content and repository context to identify the likely workflow. "
+            "IBM Bob notes can be added to improve repository-aware reasoning."
         )
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        [
-            "🧾 Ticket Analysis",
-            "🧠 Repo Context",
-            "👨‍💻 Developer Task",
-            "🧪 Test Plan",
-            "📦 Export"
-        ]
-    )
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "🧾 Ticket Analysis",
+        "🧠 Repo Context",
+        "👨‍💻 Developer Task",
+        "🧪 Test Plan",
+        "📦 Export"
+    ])
 
     with tab1:
         st.markdown(result["ticket_analysis"])
-
-        if st.button("📋 Show Copyable Ticket Analysis"):
-            st.code(result["ticket_analysis"], language="markdown")
+        st.code(result["ticket_analysis"], language="markdown")
 
     with tab2:
         st.markdown(result["repo_analysis"])
-
-        if st.button("📋 Show Copyable Repo Context"):
-            st.code(result["repo_analysis"], language="markdown")
+        st.code(result["repo_analysis"], language="markdown")
 
     with tab3:
         st.markdown(result["developer_task"])
-
-        if st.button("📋 Show Copyable Developer Task"):
-            st.code(result["developer_task"], language="markdown")
+        st.code(result["developer_task"], language="markdown")
 
     with tab4:
         st.markdown(result["test_plan"])
-
-        if st.button("📋 Show Copyable Test Plan"):
-            st.code(result["test_plan"], language="markdown")
+        st.code(result["test_plan"], language="markdown")
 
     with tab5:
         st.subheader("Export Analysis")
@@ -360,19 +309,15 @@ if result:
 # Ticket2Fix Analysis Report
 
 ## Repository
-
 {result["repo_url"] or "No repository URL provided"}
 
 ## Category
-
 {result["category"]}
 
 ## Severity
-
 {result["severity"]}
 
 ## Confidence
-
 {int(result["confidence"] * 100)}%
 
 ---
@@ -395,23 +340,11 @@ if result:
 
 ## IBM Bob Usage
 
-IBM Bob supports this workflow by helping developers understand repository structure, reason about likely affected files, generate documentation, and suggest relevant tests.
+IBM Bob supports this workflow by helping developers understand repository structure,
+reason about likely affected files, generate documentation, and suggest relevant tests.
 """
 
-        json_export = json.dumps(
-            {
-                "repository": result["repo_url"],
-                "category": result["category"],
-                "severity": result["severity"],
-                "confidence": int(result["confidence"] * 100),
-                "detected_keywords": result["detected_keywords"],
-                "ticket_analysis": result["ticket_analysis"],
-                "repo_analysis": result["repo_analysis"],
-                "developer_task": result["developer_task"],
-                "test_plan": result["test_plan"]
-            },
-            indent=2
-        )
+        json_export = json.dumps(result, indent=2)
 
         plain_text_export = markdown_export.replace("#", "").replace("*", "")
 
@@ -441,9 +374,8 @@ st.divider()
 
 st.subheader("🤖 IBM Bob Usage Section")
 
-st.markdown(
-    """
-Ticket2Fix is designed to clearly demonstrate how IBM Bob supports software development workflows.
+st.markdown("""
+Ticket2Fix is designed to demonstrate how IBM Bob supports software development workflows.
 
 IBM Bob helps with:
 
@@ -456,5 +388,4 @@ IBM Bob helps with:
 - Reducing repetitive work between support and engineering teams
 
 **Core message:** Ticket2Fix solves the communication gap before coding starts — the gap between support tickets and developer action.
-"""
-)
+""")
