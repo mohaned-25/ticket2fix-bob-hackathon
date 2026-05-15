@@ -872,8 +872,64 @@ with right_col:
     st.markdown('<div class="section-subtitle">The generated result is structured for developers, QA, and support teams.</div>', unsafe_allow_html=True)
 
     if generate:
+       if generate:
         if not ticket.strip():
             st.warning("Please enter a support ticket first.")
+        else:
+            with st.status("Analyzing support ticket...", expanded=True) as status:
+                st.write("🔍 Classifying issue type...")
+                time.sleep(0.25)
+
+                st.write("📊 Estimating severity and business impact...")
+                time.sleep(0.25)
+
+                st.write("🧠 Identifying likely affected areas...")
+                time.sleep(0.25)
+
+                st.write("🧪 Preparing test planning suggestions...")
+                time.sleep(0.25)
+
+                st.write("✅ Generating developer-ready task...")
+                time.sleep(0.2)
+
+                analysis, category, severity, business_impact, likely_areas, tests = analyze_ticket(
+                    ticket,
+                    project_context
+                )
+
+                status.update(label="Analysis complete!", state="complete")
+
+            st.session_state.analysis_count += 1
+
+            st.session_state.history.insert(0, {
+                "ticket": ticket[:50] + "...",
+                "category": category,
+                "severity": get_severity_level(severity),
+                "timestamp": time.strftime("%H:%M:%S")
+            })
+
+            st.session_state.history = st.session_state.history[:3]
+
+            st.success("✨ Developer-ready task generated successfully!")
+
+            if st.session_state.analysis_count == 1:
+                st.balloons()
+
+            confidence, keywords_found = calculate_confidence(ticket.lower())
+
+            metric1, metric2, metric3, metric4 = st.columns(4)
+
+            with metric1:
+                st.metric("Category", category)
+
+            with metric2:
+                st.metric("Severity", get_severity_level(severity))
+
+            with metric3:
+                st.metric("Affected Areas", len(likely_areas))
+
+            with metric4:
+                st.metric("Confidence", f"{confidence * 100:.0f}%")
         else:
 with st.status("Analyzing support ticket...", expanded=True) as status:
                 st.write("🔍 Classifying issue type...")
