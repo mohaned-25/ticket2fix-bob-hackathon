@@ -930,7 +930,7 @@ with right_col:
 
             with metric4:
                 st.metric("Confidence", f"{confidence * 100:.0f}%")
-        else:
+        
 with st.status("Analyzing support ticket...", expanded=True) as status:
                 st.write("🔍 Classifying issue type...")
                 time.sleep(0.25)
