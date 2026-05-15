@@ -562,11 +562,12 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="sidebar-box">
-        <b>✅ Best Demo Input</b><br><br>
-        Use <b>Authentication issue</b> for the final video demo.
-    </div>
-    """, unsafe_allow_html=True)
+<div class="sidebar-box">
+    <b>🎯 Best Demo Scenario</b><br><br>
+    Use <b>Authentication issue</b> to clearly show severity, affected modules,
+    debugging steps, acceptance criteria, and test planning.
+</div>
+""", unsafe_allow_html=True)
 
     st.divider()
 
