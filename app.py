@@ -871,8 +871,7 @@ with right_col:
     st.markdown('<div class="section-title">📌 Generated Engineering Output</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-subtitle">The generated result is structured for developers, QA, and support teams.</div>', unsafe_allow_html=True)
 
-    if generate:
-       if generate:
+   if generate:
         if not ticket.strip():
             st.warning("Please enter a support ticket first.")
         else:
@@ -899,57 +898,7 @@ with right_col:
 
                 status.update(label="Analysis complete!", state="complete")
 
-            st.session_state.analysis_count += 1
-
-            st.session_state.history.insert(0, {
-                "ticket": ticket[:50] + "...",
-                "category": category,
-                "severity": get_severity_level(severity),
-                "timestamp": time.strftime("%H:%M:%S")
-            })
-
-            st.session_state.history = st.session_state.history[:3]
-
-            st.success("✨ Developer-ready task generated successfully!")
-
-            if st.session_state.analysis_count == 1:
-                st.balloons()
-
             confidence, keywords_found = calculate_confidence(ticket.lower())
-
-            metric1, metric2, metric3, metric4 = st.columns(4)
-
-            with metric1:
-                st.metric("Category", category)
-
-            with metric2:
-                st.metric("Severity", get_severity_level(severity))
-
-            with metric3:
-                st.metric("Affected Areas", len(likely_areas))
-
-            with metric4:
-                st.metric("Confidence", f"{confidence * 100:.0f}%")
-       Fix duplicate else syntax error
-with st.status("Analyzing support ticket...", expanded=True) as status:
-                st.write("🔍 Classifying issue type...")
-                time.sleep(0.25)
-
-                st.write("📊 Estimating severity and business impact...")
-                time.sleep(0.25)
-
-                st.write("🧠 Identifying likely affected areas...")
-                time.sleep(0.25)
-
-                st.write("🧪 Preparing test planning suggestions...")
-                time.sleep(0.25)
-
-                st.write("✅ Generating developer-ready task...")
-                time.sleep(0.2)
-
-                analysis, category, severity, business_impact, likely_areas, tests = analyze_ticket(ticket, project_context)
-
-                status.update(label="Analysis complete!", state="complete")
 
             st.session_state.analysis_count += 1
 
@@ -966,8 +915,6 @@ with st.status("Analyzing support ticket...", expanded=True) as status:
 
             if st.session_state.analysis_count == 1:
                 st.balloons()
-
-            confidence, keywords_found = calculate_confidence(ticket.lower())
 
             metric1, metric2, metric3, metric4 = st.columns(4)
 
@@ -992,7 +939,9 @@ with st.status("Analyzing support ticket...", expanded=True) as status:
 
             with tab1:
                 st.markdown("### Clean Bug Summary")
-                st.markdown("The reported issue indicates that users are experiencing a problem that blocks or disrupts an expected workflow.")
+                st.markdown(
+                    "The reported issue indicates that users are experiencing a problem that blocks or disrupts an expected workflow."
+                )
 
                 st.markdown("### Severity / Priority")
                 st.markdown(f"## {get_severity_badge(severity)}")
@@ -1004,6 +953,7 @@ with st.status("Analyzing support ticket...", expanded=True) as status:
 
                 st.markdown("### Business Impact")
                 st.warning(business_impact)
+
                 st.markdown("### Copyable Summary")
                 summary_text = f"""Category: {category}
 Severity: {severity}
@@ -1037,23 +987,23 @@ Likely Affected Areas: {', '.join(likely_areas)}
             with tab2:
                 st.markdown("### Reproduction Steps")
                 st.markdown("""
-                1. Open the affected feature in the application.
-                2. Follow the user workflow described in the support ticket.
-                3. Perform the action that triggers the issue.
-                4. Observe the application response.
-                5. Compare the actual result with the expected behavior.
+1. Open the affected feature in the application.
+2. Follow the user workflow described in the support ticket.
+3. Perform the action that triggers the issue.
+4. Observe the application response.
+5. Compare the actual result with the expected behavior.
                 """)
 
                 st.markdown("### Debugging Checklist")
                 st.markdown("""
-                - Confirm the issue can be reproduced.
-                - Check browser console errors.
-                - Inspect network requests and API responses.
-                - Review backend logs.
-                - Verify validation rules.
-                - Confirm database or state changes.
-                - Check whether errors are displayed to users.
-                - Add logging if the failure is silent.
+- Confirm the issue can be reproduced.
+- Check browser console errors.
+- Inspect network requests and API responses.
+- Review backend logs.
+- Verify validation rules.
+- Confirm database or state changes.
+- Check whether errors are displayed to users.
+- Add logging if the failure is silent.
                 """)
 
             with tab3:
@@ -1063,11 +1013,11 @@ Likely Affected Areas: {', '.join(likely_areas)}
 
                 st.markdown("### Acceptance Criteria")
                 st.markdown("""
-                - The issue is reproducible before the fix.
-                - The issue is resolved after the fix.
-                - The user receives clear feedback.
-                - Related tests are added.
-                - No regression is introduced in nearby functionality.
+- The issue is reproducible before the fix.
+- The issue is resolved after the fix.
+- The user receives clear feedback.
+- Related tests are added.
+- No regression is introduced in nearby functionality.
                 """)
 
             with tab4:
@@ -1121,23 +1071,20 @@ Likely Affected Areas: {', '.join(likely_areas)}
         st.info("Choose a sample ticket or paste your own ticket, then click Generate Developer-Ready Task.")
 
         st.markdown("""
-        <div class="output-box">
-            <div class="mini-label">Preview</div>
-            <b>Generated output will include:</b><br><br>
-            ✅ Clean bug summary<br>
-            ✅ Severity and business impact<br>
-            ✅ Missing information checklist<br>
-            ✅ Reproduction steps<br>
-            ✅ Likely affected areas<br>
-            ✅ Debugging checklist<br>
-            ✅ Suggested tests<br>
-            ✅ Acceptance criteria<br>
-            ✅ Markdown export
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
+<div class="output-box">
+<div class="mini-label">Preview</div>
+<b>Generated output will include:</b><br><br>
+✅ Clean bug summary<br>
+✅ Severity and business impact<br>
+✅ Missing information checklist<br>
+✅ Reproduction steps<br>
+✅ Likely affected areas<br>
+✅ Debugging checklist<br>
+✅ Suggested tests<br>
+✅ Acceptance criteria<br>
+✅ Markdown, JSON, and Plain Text export
+</div>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # Workflow Section
