@@ -877,39 +877,13 @@ with right_col:
         if not ticket.strip():
             st.warning("Please enter a support ticket first.")
         else:
-            with st.status("Analyzing support ticket...", expanded=True):
-                st.write("🔍 Classifying issue type...")
-                time.sleep(0.25)
-
-                st.write("📊 Estimating severity and business impact...")
-                time.sleep(0.25)
-
-                st.write("🧠 Identifying likely affected areas...")
-                time.sleep(0.25)
-
-                st.write("🧪 Preparing test planning suggestions...")
-                time.sleep(0.25)
-
-                st.write("✅ Generating developer-ready task...")
-                time.sleep(0.2)
+            with st.spinner("Analyzing support ticket and generating developer-ready task..."):
+                time.sleep(0.8)
 
                 analysis, category, severity, business_impact, likely_areas, tests = analyze_ticket(
                     ticket,
                     project_context
                 )
-
-            confidence, keywords_found = calculate_confidence(ticket.lower())
-            
-st.session_state.last_analysis = {
-    "analysis": analysis,
-    "category": category,
-    "severity": severity,
-    "business_impact": business_impact,
-    "likely_areas": likely_areas,
-    "tests": tests,
-    "ticket": ticket,
-    "project_context": project_context
-}
 
             confidence, keywords_found = calculate_confidence(ticket.lower())
 
@@ -1037,49 +1011,58 @@ Likely Affected Areas: {', '.join(likely_areas)}
                 st.markdown("### Full Markdown Output")
                 st.markdown(analysis)
 
-              export_format = st.radio(
-    "Choose export format:",
-    ["Markdown", "JSON", "Plain Text"],
-    horizontal=True,
-    key="export_format"
-)
+                st.markdown("### Download Options")
 
-                if export_format == "Markdown":
-                    export_data = analysis
-                    file_name = "ticket2fix-analysis.md"
-                    mime_type = "text/markdown"
-                elif export_format == "JSON":
-                    export_data = build_json_export(
-                        category,
-                        severity,
-                        business_impact,
-                        likely_areas,
-                        tests,
-                        ticket,
-                        project_context
-                    )
-                    file_name = "ticket2fix-analysis.json"
-                    mime_type = "application/json"
-                else:
-                    export_data = build_plain_text_export(
-                        category,
-                        severity,
-                        business_impact,
-                        likely_areas,
-                        tests,
-                        ticket,
-                        project_context
-                    )
-                    file_name = "ticket2fix-analysis.txt"
-                    mime_type = "text/plain"
+                markdown_data = analysis
 
-                st.download_button(
-                    label=f"📥 Download {export_format}",
-                    data=export_data,
-                    file_name=file_name,
-                    mime=mime_type,
-                    use_container_width=True
+                json_data = build_json_export(
+                    category,
+                    severity,
+                    business_impact,
+                    likely_areas,
+                    tests,
+                    ticket,
+                    project_context
                 )
+
+                plain_text_data = build_plain_text_export(
+                    category,
+                    severity,
+                    business_impact,
+                    likely_areas,
+                    tests,
+                    ticket,
+                    project_context
+                )
+
+                download_col1, download_col2, download_col3 = st.columns(3)
+
+                with download_col1:
+                    st.download_button(
+                        label="📥 Markdown",
+                        data=markdown_data,
+                        file_name="ticket2fix-analysis.md",
+                        mime="text/markdown",
+                        use_container_width=True
+                    )
+
+                with download_col2:
+                    st.download_button(
+                        label="📥 JSON",
+                        data=json_data,
+                        file_name="ticket2fix-analysis.json",
+                        mime="application/json",
+                        use_container_width=True
+                    )
+
+                with download_col3:
+                    st.download_button(
+                        label="📥 Plain Text",
+                        data=plain_text_data,
+                        file_name="ticket2fix-analysis.txt",
+                        mime="text/plain",
+                        use_container_width=True
+                    )
 
     else:
         st.info("Choose a sample ticket or paste your own ticket, then click Generate Developer-Ready Task.")
