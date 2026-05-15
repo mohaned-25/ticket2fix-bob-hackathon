@@ -352,6 +352,9 @@ if "history" not in st.session_state:
 
 if "analysis_count" not in st.session_state:
     st.session_state.analysis_count = 0
+
+if "last_analysis" not in st.session_state:
+    st.session_state.last_analysis = None
 # ---------------------------------------------------------
 # Helper Functions
 # ---------------------------------------------------------
@@ -894,7 +897,16 @@ with right_col:
                     ticket,
                     project_context
                 )
-
+st.session_state.last_analysis = {
+    "analysis": analysis,
+    "category": category,
+    "severity": severity,
+    "business_impact": business_impact,
+    "likely_areas": likely_areas,
+    "tests": tests,
+    "ticket": ticket,
+    "project_context": project_context
+}
                 status.update(label="Analysis complete!", state="complete")
 
             confidence, keywords_found = calculate_confidence(ticket.lower())
@@ -1023,11 +1035,12 @@ Likely Affected Areas: {', '.join(likely_areas)}
                 st.markdown("### Full Markdown Output")
                 st.markdown(analysis)
 
-                export_format = st.radio(
-                    "Choose export format:",
-                    ["Markdown", "JSON", "Plain Text"],
-                    horizontal=True
-                )
+              export_format = st.radio(
+    "Choose export format:",
+    ["Markdown", "JSON", "Plain Text"],
+    horizontal=True,
+    key="export_format"
+)
 
                 if export_format == "Markdown":
                     export_data = analysis
