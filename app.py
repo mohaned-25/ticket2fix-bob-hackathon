@@ -871,7 +871,7 @@ with right_col:
     st.markdown('<div class="section-title">📌 Generated Engineering Output</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-subtitle">The generated result is structured for developers, QA, and support teams.</div>', unsafe_allow_html=True)
 
-   if generate:
+    if generate:
         if not ticket.strip():
             st.warning("Please enter a support ticket first.")
         else:
@@ -1086,6 +1086,7 @@ Likely Affected Areas: {', '.join(likely_areas)}
 </div>
 """, unsafe_allow_html=True)
 
+    st.markdown("</div>", unsafe_allow_html=True)
 # ---------------------------------------------------------
 # Workflow Section
 # ---------------------------------------------------------
