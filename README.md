@@ -1,81 +1,56 @@
 # Ticket2Fix — AI Support-to-Code Assistant powered by IBM Bob
 
-## 🚀 Overview
+Ticket2Fix converts vague support tickets into developer-ready tasks, debugging steps, acceptance criteria, and test plans.
 
-Ticket2Fix is an AI-powered developer workflow assistant that converts unclear support tickets and bug reports into developer-ready tasks.
+## Problem
 
-Support tickets are often incomplete, vague, and difficult for developers to act on. Ticket2Fix helps bridge the gap between support teams and engineering teams by transforming messy user issues into structured bug summaries, reproduction steps, likely affected code areas, debugging checklists, acceptance criteria, and test plans.
+Support tickets are often incomplete, unclear, and difficult for developers to act on.
 
-This project was built for the IBM Bob Hackathon, where the goal is to build solutions that improve how software is built using IBM Bob as an AI development partner. IBM Bob supports repository-aware development workflows, helping developers understand codebases, reason through logic, generate documentation, and reduce repetitive work.
+Example:
 
-## 🎯 Problem
+> After resetting password, users cannot log in. The page reloads but no error message appears.
 
-In many software teams, support tickets arrive like this:
+Developers then need to manually investigate the issue, ask for clarification, identify possible affected files, write reproduction steps, and create test cases.
 
-> "User cannot log in after resetting password. Page reloads but no error is shown."
+## Solution
 
-This type of ticket is difficult for developers because it usually lacks:
+Ticket2Fix transforms a vague support ticket into a structured developer-ready task.
 
-- Clear reproduction steps
-- Expected vs actual behavior
-- Technical context
-- Possible affected files
-- Debugging checklist
-- Test requirements
-- Acceptance criteria
-
-As a result, developers spend unnecessary time investigating, asking for clarification, and manually translating user reports into actionable engineering tasks.
-
-## 💡 Solution
-
-Ticket2Fix solves this by converting a support ticket into a complete developer-ready issue.
-
-The user provides:
-
-1. A support ticket or bug report
-2. A GitHub repository URL or project context
-
-Ticket2Fix then generates:
+It generates:
 
 - Clean bug summary
-- Severity and priority estimation
+- Severity and priority
 - Missing information checklist
 - Reproduction steps
-- Expected behavior
-- Actual behavior
-- Likely affected modules
-- Suggested files to inspect
+- Expected and actual behavior
+- Likely affected areas
 - Debugging checklist
-- Developer-ready task
+- Suggested tests
 - Acceptance criteria
-- Suggested test cases
 
-## 🤖 How IBM Bob Is Used
+## IBM Bob Usage
 
-IBM Bob is used as the AI development partner throughout this project.
+IBM Bob was used as the AI development partner for this project.
 
-IBM Bob helps with:
+IBM Bob helped with:
 
-- Understanding the repository structure
-- Explaining the project architecture
-- Identifying likely affected files and modules
-- Assisting with backend and frontend implementation
-- Generating documentation
-- Suggesting test scenarios
-- Improving the developer workflow
-- Reducing repetitive manual work
+- Repository understanding
+- Architecture review
+- Feature planning
+- Documentation generation
+- Test plan generation
+- Code review
+- Workflow improvement
 
-The hackathon requires projects to clearly demonstrate meaningful use of IBM Bob, and submissions should include a public GitHub repository with an exported IBM Bob report. This repository includes documentation describing how IBM Bob was used during the project. 
+## Tech Stack
 
-## ✨ Key Features
+- Python
+- Streamlit
+- IBM Bob
 
-### 1. Ticket Analyzer
+## Run Locally
 
-Converts unclear support tickets into structured issue summaries.
+Install dependencies:
 
-Example input:
-
-```text
-After resetting password, users cannot log in.
-The page reloads but does not show an error message.
-This happens only after using the reset password link.
+```bash
+pip install -r requirements.txt
