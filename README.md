@@ -21,7 +21,7 @@ This project was built for the **IBM Bob Hackathon** using **IBM Bob as an AI de
 - 💻 **GitHub Repository:** https://github.com/mohaned-25/ticket2fix-bob-hackathon
 - 🎥 **Demo Video:** [Watch Demo Video](./Demo%20Video/Demo%20Video.mp4)
 - 📊 **Slide Deck:** [Ticket2Fix](./slides/ticket2fix.pdf)
-- 📄 **IBM Bob Report:** [Bob Report](docs/ibm-bob-report.md)
+- 📄 **IBM Bob Report:** [Bob Report](./docs/ibm-bob-report.md)
 - 🧠 **IBM Bob Usage Summary:** [Bob Usage Summary](./docs/bob-usage-summary.md)
 
 ---
