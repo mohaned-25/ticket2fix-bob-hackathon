@@ -23,7 +23,7 @@ This project was built for the **IBM Bob Hackathon** using **IBM Bob as an AI de
 - 📊 **Slide Deck:** [Ticket2Fix](./slides/ticket2fix.pdf)
 - 📄 **IBM Bob Report:** [Bob Report](./docs/ibm-bob-report.md)
 - 🧠 **IBM Bob Usage Summary:** [Bob Usage Summary](./docs/bob-usage-summary.md)
-- - 🏆 **lablab.ai Submission:** `LABLAB_SUBMISSION_LINK`
+- 🏆 **lablab.ai Submission:** `LABLAB_SUBMISSION_LINK`
 
 ---
 
