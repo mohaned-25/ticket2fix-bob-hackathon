@@ -22,7 +22,7 @@ This project was built for the **IBM Bob Hackathon** using **IBM Bob as an AI de
 - 🎥 **Demo Video:** [Watch Demo Video](./Demo%20Video/Demo%20Video.mp4)
 - 📊 **Slide Deck:** [Ticket2Fix](./slides/ticket2fix.pdf)
 - 📄 **IBM Bob Report:** `docs/ibm-bob-report.pdf`
-- 🧠 **IBM Bob Usage Summary:** `[Bob Usage Summary](./docs/bob-usage-summary.md)`
+- 🧠 **IBM Bob Usage Summary:** [Bob Usage Summary](./docs/bob-usage-summary.md)
 
 ---
 
