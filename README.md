@@ -19,7 +19,7 @@ This project was built for the **IBM Bob Hackathon** using **IBM Bob as an AI de
 
 - 🌐 **Live Demo:** https://ticket2fix-bob-hackathon-mg9zabsxrm3vkwn5fg8a2s.streamlit.app/
 - 💻 **GitHub Repository:** https://github.com/mohaned-25/ticket2fix-bob-hackathon
-- 🎥 **Demo Video:** `Demo%20Video.mp4`
+- 🎥 **Demo Video:** Demo%20Video.mp4
 - 📊 **Slide Deck:** Coming soon
 - 📄 **IBM Bob Report:** `docs/ibm-bob-report.pdf`
 - 🧠 **IBM Bob Usage Summary:** `docs/bob-usage-summary.md`
